@@ -154,3 +154,49 @@ export function previewText(value: unknown): string {
     return String(value);
   }
 }
+
+export function inferFieldType(items: HitItem[], name: string): string {
+  const sample = items.find((item) => item[name] != null)?.[name];
+  if (typeof sample === 'boolean') return 'bool';
+  if (typeof sample === 'number') return Number.isInteger(sample) ? 'int64' : 'float';
+  if (Array.isArray(sample)) {
+    if (sample.every((entry) => typeof entry === 'number')) return 'float[]';
+    if (sample.every((entry) => typeof entry === 'string')) return 'string[]';
+    return 'object[]';
+  }
+  if (sample && typeof sample === 'object') return 'object';
+  return 'string';
+}
+
+export function hitColumns(
+  fields: { name: string; type: string; embed?: unknown; num_dim?: number }[] | undefined,
+  items: HitItem[],
+): FieldInfo[] {
+  const schemaFields = (fields || []).filter((field) => field.name && !field.name.includes('.*'));
+  const ordered: FieldInfo[] = [{ name: 'id', type: 'string', known: true }];
+  schemaFields.forEach((field) => {
+    if (field.name === 'id') return;
+    const column: FieldInfo = {
+      name: field.name,
+      type: field.type,
+      known: true,
+    };
+    if (field.embed) column.embed = field.embed;
+    if (typeof field.num_dim === 'number') column.num_dim = field.num_dim;
+    ordered.push(column);
+  });
+  const seen = new Set(ordered.map((column) => column.name));
+  items.forEach((item) => {
+    Object.keys(item).forEach((key) => {
+      if (!isHiddenKey(key) && !seen.has(key)) {
+        seen.add(key);
+        ordered.push({
+          name: key,
+          type: inferFieldType(items, key),
+          known: false,
+        });
+      }
+    });
+  });
+  return ordered;
+}

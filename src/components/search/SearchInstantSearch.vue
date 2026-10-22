@@ -62,10 +62,13 @@
         <search-facet-list v-for="name in facetBooleanFields" :key="name" :attribute="name" />
       </aside>
       <div class="search-hits">
-        <ais-pagination class="q-mb-md" />
+        <div class="search-hits-bar">
+          <ais-pagination />
+          <search-hits-layout-switch />
+        </div>
         <ais-hits>
           <template #default="{ items }">
-            <search-hits-ledger :items="items || []" @deleted="instantSearchInstance.refresh()" />
+            <search-hits-results :items="items || []" @deleted="instantSearchInstance.refresh()" />
           </template>
         </ais-hits>
         <ais-pagination class="q-my-md" />
@@ -95,7 +98,8 @@ import {
 } from 'vue-instantsearch/vue3/es';
 import 'instantsearch.css/themes/reset.css';
 import { useNodeStore } from '../../stores/node';
-import SearchHitsLedger from './SearchHitsLedger.vue';
+import SearchHitsLayoutSwitch from './SearchHitsLayoutSwitch.vue';
+import SearchHitsResults from './SearchHitsResults.vue';
 import SearchFacetList from './SearchFacetList.vue';
 import DebouncedSearchBox from './DebouncedSearchBox.vue';
 import TypesenseInstantSearchAdapter from 'typesense-instantsearch-adapter';

@@ -30,6 +30,7 @@ import {
   symSharpQueryStats,
   symSharpSearch,
   symSharpSwitchAccount,
+  symSharpTableRows,
   symSharpUnfoldLess,
   symSharpUnfoldMore,
   symSharpUploadFile,
@@ -70,6 +71,7 @@ export const appIcons: Record<string, string> = {
   sym_s_query_stats: symSharpQueryStats,
   sym_s_search: symSharpSearch,
   sym_s_switch_account: symSharpSwitchAccount,
+  sym_s_table_rows: symSharpTableRows,
   sym_s_unfold_less: symSharpUnfoldLess,
   sym_s_unfold_more: symSharpUnfoldMore,
 };

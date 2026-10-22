@@ -60,12 +60,12 @@
       >Export raw results</q-btn
     >
   </div>
-  <search-hits-ledger
-    v-if="results && results.hits"
-    class="q-mt-md"
-    :items="hits"
-    @deleted="removeHit"
-  />
+  <div v-if="results && results.hits" class="search-hits-json">
+    <div class="search-hits-bar">
+      <search-hits-layout-switch />
+    </div>
+    <search-hits-results :items="hits" @deleted="removeHit" />
+  </div>
   <pre v-if="results && !results.hits">
           {{ resultsJson }}
         </pre
@@ -77,7 +77,8 @@ import { computed, ref, watch } from 'vue';
 import { LocalStorage } from 'quasar';
 import { useNodeStore } from 'src/stores/node';
 import MonacoEditor from 'src/components/MonacoEditor.vue';
-import SearchHitsLedger from './SearchHitsLedger.vue';
+import SearchHitsLayoutSwitch from './SearchHitsLayoutSwitch.vue';
+import SearchHitsResults from './SearchHitsResults.vue';
 import type { SearchParams } from 'typesense/lib/Typesense/Documents';
 
 const store = useNodeStore();
