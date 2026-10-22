@@ -1,71 +1,74 @@
 <template>
-  <q-page padding>
-    <q-expansion-item
-      v-model="state.expanded"
-      expand-separator
-      icon="sym_s_add_circle"
-      expand-icon="sym_s_unfold_more"
-      expanded-icon="sym_s_unfold_less"
-      :label="`${isUpdate ? 'Update' : 'Add'} Curation`"
-      header-class="bg-primary text-white"
-    >
-      <q-card style="height: 60vh" class="bg-surface column">
-        <q-card-section>
-          <q-input v-model="state.id" dense filled label="ID"></q-input>
-        </q-card-section>
-        <monaco-editor v-model="overrideJson"></monaco-editor>
-        <q-banner v-if="state.jsonError" inline-actions class="text-white bg-red">
-          Invalid Format: {{ state.jsonError }}
-        </q-banner>
+  <q-page class="page">
+    <header class="page-head">
+      <div>
+        <h1 class="page-title">Curations</h1>
+        <p class="page-lede">Pin, hide, or override results for a specific query.</p>
+      </div>
+      <q-input
+        v-model="state.filter"
+        borderless
+        debounce="300"
+        class="page-filter"
+        placeholder="Filter curations"
+      >
+        <template #append>
+          <q-icon name="sym_s_search" />
+        </template>
+      </q-input>
+    </header>
 
-        <q-card-actions align="right" class="bg-primary">
-          <q-btn
-            size="md"
-            padding="sm lg"
-            unelevated
-            color="primary"
-            :disable="!isValid"
-            @click="createOverride()"
-            >{{ isUpdate ? 'Update' : 'Add' }} Curation</q-btn
-          >
-        </q-card-actions>
-      </q-card>
-    </q-expansion-item>
+    <section class="composer">
+      <q-expansion-item
+        v-model="state.expanded"
+        expand-separator
+        icon="sym_s_add_circle"
+        expand-icon="sym_s_unfold_more"
+        expanded-icon="sym_s_unfold_less"
+        :label="isUpdate ? 'Update curation' : 'New curation'"
+      >
+        <div class="column" style="height: 60vh">
+          <q-input v-model="state.id" borderless label="ID" class="q-py-md" />
+          <monaco-editor v-model="overrideJson"></monaco-editor>
+          <q-banner v-if="state.jsonError" inline-actions>
+            This JSON is invalid: {{ state.jsonError }}
+          </q-banner>
+          <div class="row justify-end q-py-md">
+            <q-btn unelevated color="primary" :disable="!isValid" @click="createOverride()">{{
+              isUpdate ? 'Update curation' : 'Add curation'
+            }}</q-btn>
+          </div>
+        </div>
+      </q-expansion-item>
+    </section>
 
-    <q-table
-      class="q-mt-md"
-      title="Curations"
-      flat
-      bordered
-      :filter="state.filter"
-      :rows="store.data.overrides"
-      :columns="state.columns"
-      row-key="id"
-      :visible-columns="['query', 'match', 'includes', 'excludes', 'actions']"
-    >
-      <template #top-left>
-        <div class="text-h6"><q-icon size="md" name="sym_s_low_priority" /> Curations</div>
-      </template>
-      <template #top-right>
-        <q-input v-model="state.filter" borderless dense debounce="300" placeholder="Search">
-          <template #append>
-            <q-icon name="sym_s_search" />
-          </template>
-        </q-input>
-      </template>
-      <template #body-cell-actions="props">
-        <q-td class="text-right">
-          <q-btn flat icon="sym_s_edit" title="Edit" @click="editOverride(props.row)"></q-btn>
-          <q-btn
-            flat
-            color="negative"
-            icon="sym_s_delete_forever"
-            title="Delete"
-            @click="deleteOverride(props.row.id)"
-          ></q-btn>
-        </q-td>
-      </template>
-    </q-table>
+    <section class="page-section">
+      <q-table
+        :filter="state.filter"
+        :rows="store.data.overrides"
+        :columns="state.columns"
+        row-key="id"
+        :visible-columns="['query', 'match', 'includes', 'excludes', 'actions']"
+      >
+        <template #body-cell-actions="props">
+          <q-td class="text-right">
+            <q-btn
+              flat
+              icon="sym_s_edit"
+              title="Edit curation"
+              @click="editOverride(props.row)"
+            ></q-btn>
+            <q-btn
+              flat
+              color="negative"
+              icon="sym_s_delete_forever"
+              title="Delete curation"
+              @click="deleteOverride(props.row.id)"
+            ></q-btn>
+          </q-td>
+        </template>
+      </q-table>
+    </section>
   </q-page>
 </template>
 
@@ -131,7 +134,7 @@ const state = reactive({
       field: (row: OverrideSchema) => row.excludes?.length,
     },
     {
-      label: 'Actions',
+      label: '',
       name: 'actions',
       align: 'right',
     },
@@ -171,9 +174,10 @@ function editOverride(override: OverrideSchema) {
 
 function deleteOverride(id: string) {
   $q.dialog({
-    title: 'Confirm',
-    message: `Delete curation with id: ${id}?`,
-    cancel: true,
+    title: `Delete curation ${id}?`,
+    message: 'This query will go back to organic ranking.',
+    cancel: { flat: true, label: 'Keep curation', color: 'primary' },
+    ok: { unelevated: true, label: 'Delete curation', color: 'negative' },
     persistent: true,
   }).onOk(() => {
     void store.deleteOverride(id);

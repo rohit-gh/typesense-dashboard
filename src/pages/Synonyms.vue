@@ -1,38 +1,45 @@
 <template>
-  <q-page padding>
-    <q-expansion-item
-      v-model="state.expanded"
-      expand-separator
-      icon="sym_s_add_circle"
-      expand-icon="sym_s_unfold_more"
-      expanded-icon="sym_s_unfold_less"
-      :label="`${isUpdate ? 'Update' : 'Add'} Synonym`"
-      header-class="bg-primary text-white"
-    >
-      <q-card class="bg-surface column">
-        <q-card-section>
-          <q-input v-model="state.id" label="ID" filled class="q-mb-md"></q-input>
-          <q-option-group
-            v-model="state.type"
-            filled
-            :options="typeOptions"
-            color="primary"
-            inline
-            class="q-mb-md"
-          />
+  <q-page class="page">
+    <header class="page-head">
+      <div>
+        <h1 class="page-title">Synonyms</h1>
+        <p class="page-lede">Treat related terms as the same query in this collection.</p>
+      </div>
+      <q-input
+        v-model="state.filter"
+        borderless
+        debounce="300"
+        class="page-filter"
+        placeholder="Filter synonyms"
+      >
+        <template #append>
+          <q-icon name="sym_s_search" />
+        </template>
+      </q-input>
+    </header>
 
+    <section class="composer">
+      <q-expansion-item
+        v-model="state.expanded"
+        expand-separator
+        icon="sym_s_add_circle"
+        expand-icon="sym_s_unfold_more"
+        expanded-icon="sym_s_unfold_less"
+        :label="isUpdate ? 'Update synonym' : 'New synonym'"
+      >
+        <div class="field-stack q-py-md">
+          <q-input v-model="state.id" label="ID" borderless />
+          <q-option-group v-model="state.type" :options="typeOptions" color="primary" inline />
           <q-input
             v-if="state.type === types.ONE_WAY"
             v-model="state.synonym.root"
-            filled
+            borderless
             stack-label
             label="Root"
-            class="q-mb-md"
-          ></q-input>
-
+          />
           <q-select
             v-model="state.synonym.synonyms"
-            filled
+            borderless
             multiple
             use-chips
             use-input
@@ -40,85 +47,64 @@
             stack-label
             hide-dropdown-icon
             label="Synonyms"
-            hint="Enter a synonym and press enter"
-          >
-          </q-select>
-        </q-card-section>
-        <q-separator />
-        <q-card-section>
-          <div class="text-overline">Optional</div>
+            hint="Type a term and press Enter"
+          />
+          <h3 class="page-section-title">Optional</h3>
           <q-select
             v-model="state.synonym.symbols_to_index"
-            filled
+            borderless
             multiple
             use-chips
             use-input
             new-value-mode="add"
             stack-label
             hide-dropdown-icon
-            label="Symbols to Index"
-            hint="Enter a symbol (eg: +, - ) and press enter"
-          >
-          </q-select>
-
+            label="Symbols to index"
+            hint="Type a symbol such as + or − and press Enter"
+          />
           <q-input
             v-model="state.synonym.locale"
-            filled
+            borderless
             stack-label
             label="Locale"
-            class="q-mb-md"
             hint="Leave blank to auto-detect"
-          ></q-input>
-        </q-card-section>
+          />
+          <div class="row justify-end">
+            <q-btn unelevated color="primary" :disable="!isValid" @click="createSynonym()">{{
+              isUpdate ? 'Update synonym' : 'Add synonym'
+            }}</q-btn>
+          </div>
+        </div>
+      </q-expansion-item>
+    </section>
 
-        <q-card-actions align="right" class="bg-primary">
-          <q-btn
-            size="md"
-            padding="sm lg"
-            unelevated
-            color="primary"
-            :disable="!isValid"
-            @click="createSynonym()"
-            >{{ isUpdate ? 'Update' : 'Add' }} Synonym</q-btn
-          >
-        </q-card-actions>
-      </q-card>
-    </q-expansion-item>
-
-    <q-table
-      class="q-mt-md"
-      title="Synonyms"
-      flat
-      bordered
-      :filter="state.filter"
-      :rows="store.data.synonyms"
-      :columns="state.columns"
-      row-key="id"
-      :pagination="{ rowsPerPage: 50, sortBy: 'name' }"
-    >
-      <template #top-left>
-        <div class="text-h6"><q-icon size="md" name="sym_s_dataset_linked" /> Synonyms</div>
-      </template>
-      <template #top-right>
-        <q-input v-model="state.filter" borderless dense debounce="300" placeholder="Search">
-          <template #append>
-            <q-icon name="sym_s_search" />
-          </template>
-        </q-input>
-      </template>
-      <template #body-cell-actions="props">
-        <q-td class="text-right">
-          <q-btn flat icon="sym_s_edit" title="Edit" @click="editSynonym(props.row)"></q-btn>
-          <q-btn
-            flat
-            color="negative"
-            icon="sym_s_delete_forever"
-            title="Delete"
-            @click="deleteSynonym(props.row.id)"
-          ></q-btn>
-        </q-td>
-      </template>
-    </q-table>
+    <section class="page-section">
+      <q-table
+        :filter="state.filter"
+        :rows="store.data.synonyms"
+        :columns="state.columns"
+        row-key="id"
+        :pagination="{ rowsPerPage: 50, sortBy: 'name' }"
+      >
+        <template #body-cell-actions="props">
+          <q-td class="text-right">
+            <q-btn
+              flat
+              icon="sym_s_edit"
+              title="Edit synonym"
+              @click="editSynonym(props.row)"
+            ></q-btn>
+            <q-btn
+              flat
+              color="negative"
+              icon="sym_s_delete_forever"
+              title="Delete synonym"
+              @click="deleteSynonym(props.row.id)"
+            ></q-btn>
+          </q-td>
+        </template>
+      </q-table>
+    </section>
   </q-page>
 </template>
 
@@ -206,7 +192,7 @@ const state = reactive({
       sortable: true,
     },
     {
-      label: 'Actions',
+      label: '',
       name: 'actions',
       align: 'right',
     },
@@ -257,9 +243,10 @@ function editSynonym(synonym: SynonymSchema) {
 
 function deleteSynonym(id: string) {
   $q.dialog({
-    title: 'Confirm',
-    message: `Delete synonym with id: ${id}?`,
-    cancel: true,
+    title: `Delete synonym ${id}?`,
+    message: 'Queries will stop treating these terms as equivalent.',
+    cancel: { flat: true, label: 'Keep synonym', color: 'primary' },
+    ok: { unelevated: true, label: 'Delete synonym', color: 'negative' },
     persistent: true,
   }).onOk(() => {
     void store.deleteSynonym(id);

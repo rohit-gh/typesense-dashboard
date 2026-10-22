@@ -1,6 +1,6 @@
 <template>
   <q-layout view="hHh Lpr lFf">
-    <q-header bordered>
+    <q-header>
       <q-toolbar>
         <q-btn
           flat
@@ -11,41 +11,37 @@
           @click="toggleLeftDrawer"
         />
 
-        <q-toolbar-title> Typesense Dashboard </q-toolbar-title>
+        <q-toolbar-title>
+          <span class="logo">Typesense.</span>
+        </q-toolbar-title>
 
-        <q-btn padding="xs md" flat dense no-caps>
+        <q-btn padding="xs md" flat dense no-caps class="host-label">
           {{ store.loginData?.node.host }}
           <q-icon right name="sym_s_switch_account" />
           <q-menu>
             <server-history :show-logout="true"></server-history>
           </q-menu>
         </q-btn>
-        <q-separator dark vertical spaced inset />
         <q-btn
           flat
           dense
           :icon="$q.dark.isActive ? 'sym_s_light_mode' : 'sym_s_dark_mode'"
-          title="Toggle Dark Mode"
+          :title="$q.dark.isActive ? 'Use paper theme' : 'Use ink theme'"
+          :aria-label="$q.dark.isActive ? 'Use paper theme' : 'Use ink theme'"
           @click="$q.dark.toggle()"
         />
       </q-toolbar>
     </q-header>
 
-    <q-drawer
-      v-model="leftDrawerOpen"
-      show-if-above
-      side="left"
-      :width="250"
-      class="bg-primary text-white"
-    >
+    <q-drawer v-model="leftDrawerOpen" show-if-above side="left" :width="248">
       <nav-menu></nav-menu>
     </q-drawer>
 
     <q-page-container>
-      <q-banner v-if="store.error" inline-actions class="text-white bg-red fixed-top z-max">
+      <q-banner v-if="store.error" inline-actions class="fixed-top z-max">
         {{ store.error }}
         <template #action>
-          <q-btn flat color="white" label="Dismiss" @click="dismiss()" />
+          <q-btn flat label="Dismiss" @click="dismiss()" />
         </template>
       </q-banner>
       <router-view />

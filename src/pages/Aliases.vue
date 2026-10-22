@@ -1,73 +1,77 @@
 <template>
-  <q-page padding>
-    <q-expansion-item
-      v-model="state.expanded"
-      expand-separator
-      icon="sym_s_add_circle"
-      expand-icon="sym_s_unfold_more"
-      expanded-icon="sym_s_unfold_less"
-      :label="`${isUpdate ? 'Update' : 'Add'} Alias`"
-      header-class="bg-primary text-white"
-    >
-      <q-card class="bg-surface column">
-        <q-card-section>
+  <q-page class="page">
+    <header class="page-head">
+      <div>
+        <h1 class="page-title">Aliases</h1>
+        <p class="page-lede">Point a stable name at a collection so clients can switch indexes.</p>
+      </div>
+      <q-input
+        v-model="state.filter"
+        borderless
+        debounce="300"
+        class="page-filter"
+        placeholder="Filter aliases"
+      >
+        <template #append>
+          <q-icon name="sym_s_search" />
+        </template>
+      </q-input>
+    </header>
+
+    <section class="composer">
+      <q-expansion-item
+        v-model="state.expanded"
+        expand-separator
+        icon="sym_s_add_circle"
+        expand-icon="sym_s_unfold_more"
+        expanded-icon="sym_s_unfold_less"
+        :label="isUpdate ? 'Update alias' : 'New alias'"
+      >
+        <div class="field-stack q-py-md">
           <q-input
             v-model="state.alias.name"
             label="Alias name"
-            filled
-            :rules="[(name) => !collectionNames.includes(name) || 'Must not be a collection name']"
+            borderless
+            :rules="[(name) => !collectionNames.includes(name) || 'Choose a name that is not a collection']"
           />
           <q-select
             v-model="state.alias.collection_name"
-            label="Target Collection"
-            filled
+            label="Target collection"
+            borderless
             :options="collectionNames"
-          ></q-select>
-        </q-card-section>
+          />
+          <div class="row justify-end">
+            <q-btn unelevated color="primary" @click="createAlias()">
+              {{ isUpdate ? 'Update alias' : 'Add alias' }}
+            </q-btn>
+          </div>
+        </div>
+      </q-expansion-item>
+    </section>
 
-        <q-card-actions align="right" class="bg-primary">
-          <q-btn size="md" padding="sm lg" unelevated color="primary" @click="createAlias()"
-            >{{ isUpdate ? 'Update' : 'Add' }} Alias</q-btn
-          >
-        </q-card-actions>
-      </q-card>
-    </q-expansion-item>
-
-    <q-table
-      class="q-mt-md"
-      title="Aliases"
-      flat
-      bordered
-      :filter="state.filter"
-      :rows="store.data.aliases"
-      :columns="state.columns"
-      row-key="name"
-      :visible-columns="['name', 'collection_name', 'actions']"
-      :pagination="{ rowsPerPage: 50, sortBy: 'name' }"
-    >
-      <template #top-left>
-        <div class="text-h6"><q-icon size="md" name="sym_s_call_split" /> Aliases</div>
-      </template>
-      <template #top-right>
-        <q-input v-model="state.filter" borderless dense debounce="300" placeholder="Search">
-          <template #append>
-            <q-icon name="sym_s_search" />
-          </template>
-        </q-input>
-      </template>
-      <template #body-cell-actions="props">
-        <q-td class="text-right">
-          <q-btn flat icon="sym_s_edit" title="Edit" @click="editAlias(props.row)"></q-btn>
-          <q-btn
-            flat
-            color="negative"
-            icon="sym_s_delete_forever"
-            title="Delete"
-            @click="deleteAlias(props.row.name)"
-          ></q-btn>
-        </q-td>
-      </template>
-    </q-table>
+    <section class="page-section">
+      <q-table
+        :filter="state.filter"
+        :rows="store.data.aliases"
+        :columns="state.columns"
+        row-key="name"
+        :visible-columns="['name', 'collection_name', 'actions']"
+        :pagination="{ rowsPerPage: 50, sortBy: 'name' }"
+      >
+        <template #body-cell-actions="props">
+          <q-td class="text-right">
+            <q-btn flat icon="sym_s_edit" title="Edit alias" @click="editAlias(props.row)"></q-btn>
+            <q-btn
+              flat
+              color="negative"
+              icon="sym_s_delete_forever"
+              title="Delete alias"
+              @click="deleteAlias(props.row.name)"
+            ></q-btn>
+          </q-td>
+        </template>
+      </q-table>
+    </section>
   </q-page>
 </template>
 
@@ -88,21 +92,21 @@ const state = reactive({
   filter: '',
   columns: [
     {
-      label: 'Alias Name',
+      label: 'Alias',
       name: 'name',
       field: 'name',
       align: 'left',
       sortable: true,
     },
     {
-      label: 'Collection Name',
+      label: 'Collection',
       name: 'collection_name',
       field: 'collection_name',
       align: 'left',
       sortable: true,
     },
     {
-      label: 'Actions',
+      label: '',
       name: 'actions',
       align: 'right',
     },
@@ -129,9 +133,10 @@ function editAlias(alias: CollectionAliasSchema) {
 
 function deleteAlias(name: string) {
   $q.dialog({
-    title: 'Confirm',
-    message: `Delete alias ${name}?`,
-    cancel: true,
+    title: `Delete alias ${name}?`,
+    message: 'Clients using this alias will stop resolving until you create it again.',
+    cancel: { flat: true, label: 'Keep alias', color: 'primary' },
+    ok: { unelevated: true, label: 'Delete alias', color: 'negative' },
     persistent: true,
   }).onOk(() => {
     void store.deleteAlias(name);

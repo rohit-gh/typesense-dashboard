@@ -121,7 +121,8 @@ export const useNodeStore = defineStore('node', {
   state,
   getters: {
     api(state): Api | void {
-      if (state.loginData && state.loginData.apiKey) {
+      const apiKey = state.loginData?.apiKey?.trim();
+      if (state.loginData && apiKey) {
         const electron: Api | null = (window as any).electron;
         let api = new Api();
         if (electron) {
@@ -130,7 +131,7 @@ export const useNodeStore = defineStore('node', {
         }
         api.init({
           node: { ...state.loginData.node },
-          apiKey: state.loginData.apiKey,
+          apiKey,
         });
         return api;
       }
@@ -138,52 +139,72 @@ export const useNodeStore = defineStore('node', {
   },
   actions: {
     connectionCheck() {
-      if (this.loginData) {
-        this.api
-          ?.get('/metrics.json')
-          ?.then(async (response: AxiosResponse) => {
-            this.setData({
-              metrics: response.data,
-            });
-            // minimal required data to consider the connection as successful
-            await this.getCollections();
-            // optional features depending on the apiKey and server capabilities
-            [
-              'getAliases',
-              'getSearchPresets',
-              'getAnalyticsRules',
-              'getStopwords',
-              'getApiKeys',
-              'getDebug',
-            ].forEach((funcName) => {
-              const key = (funcName[3]?.toLowerCase() +
-                funcName.slice(4)) as keyof NodeDataInterface['features'];
-              const func = (this as any)[funcName];
-              func()
-                .then(() => {
-                  this.setFeature({
-                    key,
-                    value: true,
-                  });
-                })
-                .catch(() => {
-                  this.setFeature({
-                    key,
-                    value: false,
-                  });
-                });
-            });
-            this.setIsConnected(true);
-            this.saveHistory();
-            this.setError(null);
-          })
-          .catch((error: AxiosError) => {
-            this.setIsConnected(false);
-            this.setError(error.message);
-          });
-      } else {
+      const apiKey = this.loginData?.apiKey?.trim();
+      if (!this.loginData || !apiKey) {
         this.setIsConnected(false);
+        return;
       }
+
+      const request = this.api?.get('/collections');
+      if (!request) {
+        this.setIsConnected(false);
+        this.setError('Could not create a Typesense client. Check the node address and API key.');
+        return;
+      }
+
+      request
+        .then((response: AxiosResponse) => {
+          this.setData({
+            collections: response.data,
+          });
+          void this.api?.get('/metrics.json')?.then((metrics: AxiosResponse) => {
+            this.setData({
+              metrics: metrics.data,
+            });
+          });
+          // optional features depending on the apiKey and server capabilities
+          [
+            'getAliases',
+            'getSearchPresets',
+            'getAnalyticsRules',
+            'getStopwords',
+            'getApiKeys',
+            'getDebug',
+          ].forEach((funcName) => {
+            const key = (funcName[3]?.toLowerCase() +
+              funcName.slice(4)) as keyof NodeDataInterface['features'];
+            const func = (this as any)[funcName];
+            func()
+              .then(() => {
+                this.setFeature({
+                  key,
+                  value: true,
+                });
+              })
+              .catch(() => {
+                this.setFeature({
+                  key,
+                  value: false,
+                });
+              });
+          });
+          this.setIsConnected(true);
+          this.saveHistory();
+          this.setError(null);
+        })
+        .catch((error: AxiosError) => {
+          this.setIsConnected(false);
+          const message = error.message || '';
+          if (message === 'Network Error') {
+            this.setError(
+              'Could not reach this node. Check the host, port, and that Typesense is running.',
+            );
+          } else if (message.includes('x-typesense-api-key')) {
+            this.setError('Typesense rejected the API key. Check the key for this node.');
+          } else {
+            this.setError(message);
+          }
+        });
     },
     refreshServerStatus() {
       void this.api?.get('/metrics.json')?.then((response: AxiosResponse) => {
@@ -324,7 +345,14 @@ export const useNodeStore = defineStore('node', {
         });
     },
     login(loginData: NodeLoginPayloadInterface) {
-      const { apiKey, node, forceHomeRedirect = false } = loginData;
+      const apiKey = loginData.apiKey?.trim() ?? '';
+      const { node, forceHomeRedirect = false } = loginData;
+      if (!apiKey) {
+        this.setIsConnected(false);
+        this.setError('Enter an API key.');
+        return;
+      }
+      this.setError(null);
       this.setForceRedirect(forceHomeRedirect);
       this.setNodeData({ apiKey, node });
       void this.connectionCheck();
@@ -584,6 +612,9 @@ export const useNodeStore = defineStore('node', {
     /*** mutations from vuex migration ****/
     setNodeData(payload: { apiKey: string; node: CustomNodeConfiguration } | null) {
       this.loginData = payload;
+      if (payload && !payload.apiKey.trim()) {
+        return;
+      }
       LocalStorage.set(STORAGE_KEY_LOGIN, payload);
     },
     setIsConnected(status: boolean): void {

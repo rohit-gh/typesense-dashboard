@@ -8,7 +8,7 @@ import { resolve } from 'path';
 // Read package.json to get version info
 const packageJson = JSON.parse(readFileSync(resolve('./package.json'), 'utf-8'));
 
-export default defineConfig((/* ctx */) => {
+export default defineConfig((ctx) => {
   return {
     // https://v2.quasar.dev/quasar-cli-vite/prefetch-feature
     // preFetch: true,
@@ -16,25 +16,13 @@ export default defineConfig((/* ctx */) => {
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
-    boot: ['instantsearch', 'darkmode', 'checkAutoLoginConfig'],
+    boot: ['icons', 'darkmode', 'checkAutoLoginConfig'],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#css
     css: ['app.scss'],
 
     // https://github.com/quasarframework/quasar/tree/dev/extras
-    extras: [
-      // 'ionicons-v4',
-      // 'mdi-v7',
-      // 'fontawesome-v6',
-      // 'eva-icons',
-      // 'themify',
-      // 'line-awesome',
-      // 'roboto-font-latin-ext', // this or either 'roboto-font', NEVER both!
-
-      'roboto-font', // optional, you are not bound to it
-      'material-icons', // optional, you are not bound to it
-      'material-symbols-sharp',
-    ],
+    extras: [],
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#build
     build: {
@@ -57,20 +45,53 @@ export default defineConfig((/* ctx */) => {
       // rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
 
       // publicPath: '/',
-      publicPath:
-        process.env.PUBLIC_PATH ??
-        (process.env.NODE_ENV === 'development' ? '/' : '/typesense-dashboard'),
+      publicPath: process.env.PUBLIC_PATH ?? '/',
       // analyze: true,
+      sourcemap: false,
       env: {
         APP_VERSION: packageJson.version,
+        TYPESENSE_API_KEY: ctx.dev ? (process.env.TYPESENSE_API_KEY ?? '') : '',
+        TYPESENSE_HOST: ctx.dev ? (process.env.TYPESENSE_HOST ?? '') : '',
+        TYPESENSE_PROTOCOL: ctx.dev ? (process.env.TYPESENSE_PROTOCOL ?? '') : '',
+        TYPESENSE_PORT: ctx.dev ? (process.env.TYPESENSE_PORT ?? '') : '',
       },
-      // rawDefine: {}
-      // ignorePublicFolder: true,
-      // minify: false,
-      // polyfillModulePreload: true,
-      // distDir
+      envFilter(env) {
+        if (ctx.dev) {
+          return env;
+        }
+        const next = { ...env };
+        delete next.TYPESENSE_API_KEY;
+        delete next.TYPESENSE_HOST;
+        delete next.TYPESENSE_PROTOCOL;
+        delete next.TYPESENSE_PORT;
+        delete next.TYPESENSE_READ_KEY;
+        return next;
+      },
+      extendViteConf(viteConf) {
+        const include = new Set(viteConf.optimizeDeps?.include ?? []);
+        include.add('monaco-editor/esm/vs/editor/editor.api');
+        include.add('monaco-editor/esm/vs/language/json/monaco.contribution');
+        viteConf.optimizeDeps = {
+          ...viteConf.optimizeDeps,
+          include: [...include],
+        };
+        viteConf.worker = {
+          ...viteConf.worker,
+          format: 'es',
+        };
 
-      // extendViteConf (viteConf) {},
+        if (!ctx.dev) {
+          return;
+        }
+        const prefixes = new Set(
+          Array.isArray(viteConf.envPrefix)
+            ? viteConf.envPrefix
+            : [viteConf.envPrefix || 'VITE_'],
+        );
+        prefixes.add('VITE_');
+        prefixes.add('TYPESENSE_');
+        viteConf.envPrefix = [...prefixes];
+      },
       // viteVuePluginOptions: {},
 
       vitePlugins: [
@@ -78,10 +99,6 @@ export default defineConfig((/* ctx */) => {
           'vite-plugin-checker',
           {
             vueTsc: true,
-            eslint: {
-              lintCommand: 'eslint -c ./eslint.config.js "./src*/**/*.{ts,js,mjs,cjs,vue}"',
-              useFlatConfig: true,
-            },
           },
           { server: false },
         ],
@@ -97,10 +114,10 @@ export default defineConfig((/* ctx */) => {
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#framework
     framework: {
       config: {
-        dark: 'auto',
+        dark: true,
       },
 
-      // iconSet: 'material-icons', // Quasar icon set
+      iconSet: 'svg-material-symbols-sharp',
       // lang: 'en-US', // Quasar language pack
 
       // For special cases outside of where the auto-import strategy can have an impact
@@ -183,7 +200,17 @@ export default defineConfig((/* ctx */) => {
       // extendElectronMainConf (esbuildConf) {},
       // extendElectronPreloadConf (esbuildConf) {},
 
-      // extendPackageJson (json) {},
+      // Renderer packages are already Vite-bundled into assets/. Quasar still
+      // copies every root dependency (monaco-editor, vue, sass-embedded, …)
+      // into dist/electron/UnPackaged/node_modules unless we strip them here.
+      // Electron main only needs axios + typesense (esbuild leaves them external).
+      extendPackageJson(pkg) {
+        pkg.dependencies = {
+          axios: pkg.dependencies.axios,
+          typesense: pkg.dependencies.typesense,
+        };
+        delete pkg.optionalDependencies;
+      },
 
       // Electron preload scripts (if any) from /src-electron, WITHOUT file extension
       preloadScripts: ['electron-preload'],

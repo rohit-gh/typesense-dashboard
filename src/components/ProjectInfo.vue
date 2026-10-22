@@ -100,14 +100,14 @@ const openLink = (url: string) => {
 }
 
 .project-link-btn {
-  font-size: 0.75rem;
+  font-size: var(--bs-type-label);
   text-transform: none;
   opacity: 0.8;
-  transition: opacity 0.2s;
+  transition: opacity 0.3s ease;
 }
 
 .project-link-btn:hover {
-  opacity: 1;
+  opacity: 0.7;
 }
 
 .github-icon {
@@ -125,17 +125,15 @@ const openLink = (url: string) => {
   display: block;
 }
 
-/* Light theme - invert the black icon to make it visible */
 .github-icon img {
-  filter: invert(0.6);
+  filter: invert(0.72);
 }
 
-/* Dark theme */
+.body--light .github-icon img {
+  filter: invert(0.12);
+}
+
 .project-link-btn {
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.project-link-btn:hover {
-  color: rgba(255, 255, 255, 0.9);
+  color: inherit;
 }
 </style>

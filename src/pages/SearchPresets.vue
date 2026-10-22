@@ -1,87 +1,94 @@
 <template>
-  <q-page padding>
-    <q-expansion-item
-      v-model="state.expanded"
-      expand-separator
-      icon="sym_s_add_circle"
-      expand-icon="sym_s_unfold_more"
-      expanded-icon="sym_s_unfold_less"
-      :label="`${isUpdate ? 'Update' : 'Add'} Search Preset`"
-      header-class="bg-primary text-white"
-    >
-      <q-card style="height: 60vh" class="bg-surface column">
-        <q-card-section class="q-col-gutter-md row">
-          <q-input
-            v-model="state.preset.name"
-            class="col-12 col-sm-6"
-            label="Name"
-            filled
-            :rules="[(val) => !!val || 'Field is required']"
-          />
-          <q-btn
-            type="a"
-            icon="sym_s_help"
-            no-caps
-            color="info"
-            flat
-            dense
-            :href="`https://typesense.org/docs/${store.data.debug.version || store.data.defaultDocVersion}/api/search.html#presets`"
-            target="_blank"
-            >Documentation</q-btn
-          >
-        </q-card-section>
-        <monaco-editor v-model="keyJson"></monaco-editor>
-        <q-banner v-if="state.jsonError" inline-actions class="text-white bg-red">
-          Invalid Format: {{ state.jsonError }}
-        </q-banner>
+  <q-page class="page">
+    <header class="page-head">
+      <div>
+        <h1 class="page-title">Presets</h1>
+        <p class="page-lede">Named search parameter sets that clients can reuse.</p>
+      </div>
+      <q-input
+        v-model="state.filter"
+        borderless
+        debounce="300"
+        class="page-filter"
+        placeholder="Filter presets"
+      >
+        <template #append>
+          <q-icon name="sym_s_search" />
+        </template>
+      </q-input>
+    </header>
 
-        <q-card-actions align="right" class="bg-primary">
-          <q-btn
-            size="md"
-            padding="sm lg"
-            unelevated
-            color="primary"
-            :disable="!!state.jsonError"
-            @click="createSearchPreset()"
-            >{{ isUpdate ? 'Update' : 'Add' }} Preset</q-btn
-          >
-        </q-card-actions>
-      </q-card>
-    </q-expansion-item>
+    <section class="composer">
+      <q-expansion-item
+        v-model="state.expanded"
+        expand-separator
+        icon="sym_s_add_circle"
+        expand-icon="sym_s_unfold_more"
+        expanded-icon="sym_s_unfold_less"
+        :label="isUpdate ? 'Update preset' : 'New preset'"
+      >
+        <div class="column" style="height: 60vh">
+          <div class="row items-end q-col-gutter-md q-py-md">
+            <q-input
+              v-model="state.preset.name"
+              class="col-12 col-sm-6"
+              label="Name"
+              borderless
+              :rules="[(val) => !!val || 'Enter a preset name']"
+            />
+            <q-btn
+              type="a"
+              no-caps
+              flat
+              dense
+              :href="`https://typesense.org/docs/${store.data.debug.version || store.data.defaultDocVersion}/api/search.html#presets`"
+              target="_blank"
+              >Preset documentation</q-btn
+            >
+          </div>
+          <monaco-editor v-model="keyJson"></monaco-editor>
+          <q-banner v-if="state.jsonError" inline-actions>
+            This JSON is invalid: {{ state.jsonError }}
+          </q-banner>
+          <div class="row justify-end q-py-md">
+            <q-btn
+              unelevated
+              color="primary"
+              :disable="!!state.jsonError"
+              @click="createSearchPreset()"
+              >{{ isUpdate ? 'Update preset' : 'Add preset' }}</q-btn
+            >
+          </div>
+        </div>
+      </q-expansion-item>
+    </section>
 
-    <q-table
-      class="q-mt-md"
-      title="Search Presets"
-      flat
-      bordered
-      :filter="state.filter"
-      :rows="store.data.searchPresets"
-      :columns="state.columns"
-      row-key="id"
-    >
-      <template #top-left>
-        <div class="text-h6"><q-icon size="md" name="sym_s_manage_search" /> Search Presets</div>
-      </template>
-      <template #top-right>
-        <q-input v-model="state.filter" borderless dense debounce="300" placeholder="Search">
-          <template #append>
-            <q-icon name="sym_s_search" />
-          </template>
-        </q-input>
-      </template>
-      <template #body-cell-actions_op="props">
-        <q-td class="text-right">
-          <q-btn flat icon="sym_s_edit" title="Edit" @click="editSearchPreset(props.row)"></q-btn>
-          <q-btn
-            flat
-            color="negative"
-            icon="sym_s_delete_forever"
-            title="Delete"
-            @click="deleteSearchPreset(props.row.name)"
-          ></q-btn>
-        </q-td>
-      </template>
-    </q-table>
+    <section class="page-section">
+      <q-table
+        :filter="state.filter"
+        :rows="store.data.searchPresets"
+        :columns="state.columns"
+        row-key="id"
+      >
+        <template #body-cell-actions_op="props">
+          <q-td class="text-right">
+            <q-btn
+              flat
+              icon="sym_s_edit"
+              title="Edit preset"
+              @click="editSearchPreset(props.row)"
+            ></q-btn>
+            <q-btn
+              flat
+              color="negative"
+              icon="sym_s_delete_forever"
+              title="Delete preset"
+              @click="deleteSearchPreset(props.row.name)"
+            ></q-btn>
+          </q-td>
+        </template>
+      </q-table>
+    </section>
   </q-page>
 </template>
 
@@ -124,7 +131,7 @@ const state = reactive({
       align: 'left',
     },
     {
-      label: 'Actions',
+      label: '',
       name: 'actions_op',
       align: 'right',
     },
@@ -158,9 +165,10 @@ function editSearchPreset(preset: PresetSchema) {
 
 function deleteSearchPreset(name: string) {
   $q.dialog({
-    title: 'Confirm',
-    message: `Delete preset ${name}?`,
-    cancel: true,
+    title: `Delete preset ${name}?`,
+    message: 'Clients that reference this preset will stop receiving its parameters.',
+    cancel: { flat: true, label: 'Keep preset', color: 'primary' },
+    ok: { unelevated: true, label: 'Delete preset', color: 'negative' },
     persistent: true,
   }).onOk(() => {
     void store.deleteSearchPreset(name);

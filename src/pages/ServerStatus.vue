@@ -1,180 +1,140 @@
 <template>
-  <q-page padding>
-    <div class="row">
-      <div class="col col-12 col-md-8">
-        <q-card flat bordered class="q-mb-md">
-          <q-card-section>
-            <div class="text-h5">System</div>
-            <div class="text-subtitle1 q-pt-md">CPU</div>
-            <div class="row">
-              <div
-                v-for="cpu in sortedCPU"
-                :key="cpu.node"
-                class="column flex-center flex-wrap q-ma-md"
-              >
-                <span class="text-overline">CPU {{ cpu.node }}</span>
-                <q-circular-progress
-                  show-value
-                  :value="cpu.value"
-                  size="50px"
-                  color="accent"
-                  track-color="grey-3"
-                />
-              </div>
-            </div>
-            <div class="text-subtitle1 q-pt-md">Memory</div>
-            <q-linear-progress
-              size="25px"
-              :value="
-                parseInt(store.data.metrics.system_memory_used_bytes, 10) /
-                parseInt(store.data.metrics.system_memory_total_bytes, 10)
-              "
-              color="accent"
-            >
-              <div class="absolute-full flex flex-center">
-                <q-badge
-                  color="white"
-                  text-color="accent"
-                  :label="prettyBytes(parseInt(store.data.metrics.system_memory_used_bytes, 10))"
-                />
-              </div>
-              <div class="absolute-full flex justify-end">
-                <q-badge
-                  color="white"
-                  text-color="accent"
-                  :label="prettyBytes(parseInt(store.data.metrics.system_memory_total_bytes, 10))"
-                />
-              </div>
-            </q-linear-progress>
-
-            <div class="text-subtitle1 q-pt-md">Disk</div>
-
-            <q-linear-progress
-              size="25px"
-              :value="
-                parseInt(store.data.metrics.system_disk_used_bytes, 10) /
-                parseInt(store.data.metrics.system_disk_total_bytes, 10)
-              "
-              color="accent"
-            >
-              <div class="absolute-full flex flex-center">
-                <q-badge
-                  color="white"
-                  text-color="accent"
-                  :label="prettyBytes(parseInt(store.data.metrics.system_disk_used_bytes, 10))"
-                />
-              </div>
-              <div class="absolute-full flex justify-end">
-                <q-badge
-                  color="white"
-                  text-color="accent"
-                  :label="prettyBytes(parseInt(store.data.metrics.system_disk_total_bytes, 10))"
-                />
-              </div>
-            </q-linear-progress>
-            <div class="text-subtitle1 q-pt-md">System Network</div>
-            <div>
-              Received:
-              {{ prettyBytes(parseInt(store.data.metrics.system_network_received_bytes, 10)) }}
-              Sent:
-              {{ prettyBytes(parseInt(store.data.metrics.system_network_sent_bytes, 10)) }}
-            </div>
-          </q-card-section>
-        </q-card>
-        <q-card flat bordered class="q-mb-md">
-          <q-card-section>
-            <div class="text-h5 q-mb-md">Operations</div>
-            <div class="text-subtitle1 q-pt-md">Cache</div>
-            <p>
-              Responses of search requests that are sent with use_cache parameter are cached in a
-              LRU cache.
-            </p>
-            <q-btn
-              label="Clear Search Cache"
-              color="accent"
-              unelevated
-              size="md"
-              padding="sm lg"
-              @click="store.clearCache"
-            />
-            <div class="text-subtitle1 q-pt-md">Slow Request Log</div>
-            <p>Slow requests are logged to the primary log file, with the prefix SLOW REQUEST</p>
-            <q-input
-              v-model.number="slowQueryThreshold"
-              outlined
-              label="Threshold (ms)"
-              type="number"
-              hint="Enable logging of requests that take over a defined threshold of time. (-1 to disable)"
-            >
-              <template #after>
-                <q-btn
-                  unelevated
-                  label="set"
-                  color="accent"
-                  size="md"
-                  padding="sm lg"
-                  @click="store.slowQueryThreshold(slowQueryThreshold)"
-                />
-              </template>
-            </q-input>
-            <div class="text-subtitle1 q-pt-md">Compacting the on-disk database</div>
-            <p>Recommended to run it during off-peak hours.</p>
-            <q-btn
-              label="Compact Database"
-              color="accent"
-              unelevated
-              size="md"
-              padding="sm lg"
-              @click="store.operationCompactDB"
-            />
-          </q-card-section>
-        </q-card>
+  <q-page class="page">
+    <header class="page-head">
+      <div>
+        <h1 class="page-title">Status</h1>
+        <p class="page-lede">Live metrics for this node, plus cache, logging, and compaction.</p>
       </div>
-      <q-card flat bordered class="col-12 col-md-3 offset-md-1 q-mb-md">
-        <q-card-section>
-          <div class="text-h5">Typesense</div>
+    </header>
 
-          <div class="text-subtitle1 q-pt-md">Node</div>
+    <div class="status-layout">
+      <div>
+        <section class="page-section">
+          <h2 class="page-section-title">System</h2>
+          <system-metrics />
+        </section>
 
-          <div>Protocol: {{ store.loginData?.node.protocol }}</div>
-          <div>Host: {{ store.loginData?.node.host }}</div>
-          <div>Port: {{ store.loginData?.node.port }}</div>
-          <div v-if="store.data.debug.version">Version: {{ store.data.debug.version }}</div>
-          <div v-if="Object.hasOwnProperty.call(store.data.debug, 'state')">
-            Role:
-            {{ store.data.debug.state === 1 ? 'Leader' : 'Follower' }}
+        <section class="page-section">
+          <h2 class="page-section-title">Operations</h2>
+
+          <div class="action-stack">
+            <article class="action">
+              <h3 class="page-subhead">Search cache</h3>
+              <p class="page-copy">
+                Responses sent with <span class="mono">use_cache</span> live in an LRU cache.
+              </p>
+              <q-btn
+                label="Clear search cache"
+                color="primary"
+                unelevated
+                @click="store.clearCache"
+              />
+            </article>
+
+            <article class="action">
+              <h3 class="page-subhead">Slow request log</h3>
+              <p class="page-copy">
+                Requests over this threshold are written to the primary log with the prefix SLOW
+                REQUEST. Use −1 to turn logging off.
+              </p>
+              <label class="field">
+                <span class="field-label">Threshold (ms)</span>
+                <div class="field-with-action">
+                  <q-input
+                    v-model.number="slowQueryThreshold"
+                    borderless
+                    type="number"
+                    hide-bottom-space
+                  />
+                  <q-btn
+                    unelevated
+                    label="Save threshold"
+                    color="primary"
+                    @click="store.slowQueryThreshold(slowQueryThreshold)"
+                  />
+                </div>
+              </label>
+            </article>
+
+            <article class="action">
+              <h3 class="page-subhead">On-disk compaction</h3>
+              <p class="page-copy">Run this during off-peak hours.</p>
+              <q-btn
+                label="Compact database"
+                color="primary"
+                unelevated
+                @click="store.operationCompactDB"
+              />
+            </article>
           </div>
+        </section>
+      </div>
 
-          <div class="text-subtitle1 q-pt-md">Memory</div>
-          <div
-            v-for="metric in Object.keys(store.data.metrics).filter((m) => m.includes('typesense'))"
-            :key="metric"
-          >
-            {{ metric.split('_')[2] }} :
-            {{
-              metric.includes('bytes')
-                ? prettyBytes(parseInt(store.data.metrics[metric], 10))
-                : store.data.metrics[metric]
-            }}
-          </div>
-          <div class="text-subtitle1 q-pt-md">Stats</div>
-          <div v-if="!store.data.features.stats">Stats are not enabled on this node.</div>
-          <div v-for="(content, label) in store.data.stats" :key="label">
+      <div>
+        <section class="page-section">
+          <h2 class="page-section-title">Node</h2>
+          <dl class="dl">
+            <dt>Protocol</dt>
+            <dd>{{ store.loginData?.node.protocol }}</dd>
+            <dt>Host</dt>
+            <dd>{{ store.loginData?.node.host }}</dd>
+            <dt>Port</dt>
+            <dd>{{ store.loginData?.node.port }}</dd>
+            <dt v-if="store.data.debug.version">Version</dt>
+            <dd v-if="store.data.debug.version">{{ store.data.debug.version }}</dd>
+            <dt v-if="Object.hasOwnProperty.call(store.data.debug, 'state')">Role</dt>
+            <dd v-if="Object.hasOwnProperty.call(store.data.debug, 'state')">
+              {{ store.data.debug.state === 1 ? 'Leader' : 'Follower' }}
+            </dd>
+          </dl>
+        </section>
+
+        <section class="page-section">
+          <h2 class="page-section-title">Typesense memory</h2>
+          <dl class="dl">
+            <template
+              v-for="metric in Object.keys(store.data.metrics).filter((m) => m.includes('typesense'))"
+              :key="metric"
+            >
+              <dt>{{ metric.split('_')[2] }}</dt>
+              <dd>
+                {{
+                  metric.includes('bytes')
+                    ? prettyBytes(parseInt(store.data.metrics[metric], 10))
+                    : store.data.metrics[metric]
+                }}
+              </dd>
+            </template>
+          </dl>
+        </section>
+
+        <section class="page-section">
+          <h2 class="page-section-title">Stats</h2>
+          <p v-if="!store.data.features.stats" class="page-copy">
+            Stats are not enabled on this node.
+          </p>
+          <div v-for="(content, label) in store.data.stats" :key="label" class="stat-block">
             <div v-if="isObject(content)">
-              {{ label }}
-              <div v-for="(value, entry) in content" :key="entry">{{ entry }} : {{ value }}</div>
+              <h3 class="page-subhead">{{ label }}</h3>
+              <dl class="dl">
+                <template v-for="(value, entry) in content" :key="entry">
+                  <dt>{{ entry }}</dt>
+                  <dd>{{ value }}</dd>
+                </template>
+              </dl>
             </div>
           </div>
-        </q-card-section>
-      </q-card>
+        </section>
+      </div>
     </div>
   </q-page>
 </template>
 
 <script setup lang="ts">
 import { useNodeStore } from 'src/stores/node';
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import prettyBytes from 'pretty-bytes';
+import SystemMetrics from '../components/SystemMetrics.vue';
 
 const store = useNodeStore();
 
@@ -193,22 +153,5 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.clearInterval(refreshInterval.value);
-});
-
-const sortedCPU = computed(() => {
-  return Object.entries(store.data.metrics)
-    .filter(([key]) => key.includes('cpu'))
-    .map(([key, value]) => {
-      let node = 0;
-      const keyData = key.split('_');
-      if (keyData.length > 1 && keyData[1]) {
-        node = parseInt(keyData[1].replace('cpu', '')) || 0;
-      }
-      return {
-        node,
-        value: parseFloat(value as string),
-      };
-    })
-    .sort((a, b) => a.node - b.node);
 });
 </script>

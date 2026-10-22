@@ -1,138 +1,96 @@
 <template>
-  <q-card>
-    <q-tabs
-      v-model="tab"
-      dense
-      class="text-grey"
-      active-color="primary"
-      indicator-color="primary"
-      align="justify"
-      narrow-indicator
-    >
-      <q-tab name="form" label="Form Mode" />
-      <q-tab name="json" label="JSON Mode" />
+  <div>
+    <q-tabs v-model="tab" dense align="left" narrow-indicator>
+      <q-tab name="form" label="Form" />
+      <q-tab name="json" label="JSON" />
     </q-tabs>
 
-    <q-separator />
+    <q-tab-panels v-model="tab" animated :style="createMode ? 'height: 60vh' : ''">
+      <q-tab-panel name="form" class="q-px-none">
+        <div class="row q-col-gutter-md">
+          <q-input
+            v-model="schema.name"
+            class="col-12 col-sm-6"
+            borderless
+            label="Collection name"
+            placeholder="books"
+            :disable="!createMode"
+            :rules="[(val) => !!val || 'Enter a collection name']"
+          />
+          <q-select
+            v-model="schema.default_sorting_field"
+            borderless
+            class="col-12 col-sm-6"
+            :options="availableSortFields"
+            label="Default sort field"
+            hint="Optional. Must be int32, float, or a string marked sortable."
+          />
+        </div>
 
-    <q-tab-panels
-      v-model="tab"
-      animated
-      :style="createMode ? 'height: 60vh' : ''"
-      class="bg-surface"
-    >
-      <q-tab-panel name="form">
-        <q-card-section>
-          <div class="row q-gutter-md">
+        <h3 class="page-section-title q-mt-lg">Fields</h3>
+        <div v-for="(field, index) in schema.fields" :key="index" class="field-row">
+          <div class="row q-col-gutter-md">
             <q-input
-              v-model="schema.name"
-              class="col"
-              filled
-              dense
-              label="Collection Name"
-              placeholder="books"
-              :disable="!createMode"
-              :rules="[(val) => !!val || 'Field is required']"
+              v-model="field.name"
+              class="col-12 col-sm-6"
+              borderless
+              label="Field name"
+              placeholder="title"
+              :rules="[(val) => !!val || 'Enter a field name']"
             />
             <q-select
-              v-model="schema.default_sorting_field"
-              filled
-              class="col"
-              dense
-              :options="availableSortFields"
-              label="Default sort field optional, but must be int32 or float"
-            >
-            </q-select>
+              v-model="field.type"
+              class="col-12 col-sm-4"
+              borderless
+              label="Type"
+              :options="types"
+              :rules="[(val) => !!val || 'Choose a type']"
+            />
+            <q-input
+              v-if="field.type === 'float[]'"
+              v-model.number="field.num_dim"
+              class="col-12 col-sm-2"
+              borderless
+              type="number"
+              label="Dimensions"
+            />
+            <q-input
+              v-if="field.type.startsWith('string')"
+              v-model="field.locale"
+              class="col-12 col-sm-2"
+              borderless
+              label="Locale"
+            />
           </div>
-          <div class="text-subtitle1 q-pt-md">Fields</div>
-          <q-card
-            v-for="(field, index) in schema.fields"
-            :key="index"
-            flat
-            bordered
-            class="q-mb-md"
-          >
-            <q-card-section class="row q-col-gutter-md">
-              <q-input
-                v-model="field.name"
-                class="col-12 col-sm-6"
-                dense
-                outlined
-                label="Field Name"
-                placeholder="title"
-                :rules="[(val) => !!val || 'Field is required']"
-              />
-
-              <q-select
-                v-model="field.type"
-                class="col-12 col-sm-4"
-                dense
-                outlined
-                label="type"
-                :options="types"
-                :rules="[(val) => !!val || 'Field is required']"
-              />
-              <q-input
-                v-if="field.type === 'float[]'"
-                v-model.number="field.num_dim"
-                class="col-12 col-sm-2"
-                dense
-                outlined
-                type="number"
-                label="num_dim"
-                placeholder=""
-              />
-              <q-input
-                v-if="field.type.startsWith('string')"
-                v-model="field.locale"
-                class="col-12 col-sm-2"
-                dense
-                outlined
-                label="locale"
-                placeholder=""
-              />
-            </q-card-section>
-            <q-separator></q-separator>
-            <q-card-actions align="between">
-              <div>
-                <q-checkbox v-model="field.optional" label="optional" />
-                <q-checkbox v-model="field.facet" label="facet" />
-                <q-checkbox v-model="field.index" label="index" />
-                <q-checkbox v-model="field.sort" label="sort" />
-                <q-checkbox v-model="field.infix" label="infix" />
-                <q-checkbox v-model="field.stem" label="stem" />
-              </div>
-
-              <q-btn size="md" padding="sm lg" unelevated @click="removeField(field)"
-                >Remove Field</q-btn
-              >
-            </q-card-actions>
-          </q-card>
-        </q-card-section>
+          <div class="row items-center justify-between">
+            <div>
+              <q-checkbox v-model="field.optional" label="optional" />
+              <q-checkbox v-model="field.facet" label="facet" />
+              <q-checkbox v-model="field.index" label="index" />
+              <q-checkbox v-model="field.sort" label="sort" />
+              <q-checkbox v-model="field.infix" label="infix" />
+              <q-checkbox v-model="field.stem" label="stem" />
+            </div>
+            <q-btn flat no-caps @click="removeField(field)">Remove field</q-btn>
+          </div>
+        </div>
       </q-tab-panel>
 
       <q-tab-panel name="json" class="q-pa-none">
-        <monaco-editor v-model="schemaJson" style="height: 60vh"></monaco-editor>
-        <q-banner v-if="jsonError" inline-actions class="text-white bg-red">
-          Invalid Format: {{ jsonError }}
+        <monaco-editor v-if="tab === 'json'" v-model="schemaJson" style="height: 60vh"></monaco-editor>
+        <q-banner v-if="jsonError" inline-actions>
+          This JSON is invalid: {{ jsonError }}
         </q-banner>
       </q-tab-panel>
     </q-tab-panels>
-    <q-separator />
-    <q-card-actions align="between" class="bg-primary">
-      <q-btn size="md" padding="sm lg" unelevated color="primary" @click="addField()"
-        >Add field</q-btn
-      >
-      <q-btn
-        size="md"
-        padding="sm lg"
-        unelevated
-        color="primary"
-        @click="$emit('submit', schema)"
-        >{{ primaryActionLabel }}</q-btn
-      >
-    </q-card-actions>
-  </q-card>
+
+    <div class="row justify-between q-py-md">
+      <q-btn unelevated color="primary" @click="addField()">Add field</q-btn>
+      <q-btn unelevated color="primary" @click="$emit('submit', schema)">{{
+        primaryActionLabel
+      }}</q-btn>
+    </div>
+  </div>
 </template>
 
 <script lang="ts">
@@ -142,12 +100,13 @@ import type {
   CollectionUpdateSchema,
 } from 'typesense/lib/Typesense/Collection';
 import type { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections';
-import { defineComponent } from 'vue';
-import MonacoEditor from '../MonacoEditor.vue';
+import { defineAsyncComponent, defineComponent } from 'vue';
 
 export default defineComponent({
   name: 'CollectionUi',
-  components: { MonacoEditor },
+  components: {
+    MonacoEditor: defineAsyncComponent(() => import('../MonacoEditor.vue')),
+  },
   props: {
     initialSchema: {
       type: Object as () => CollectionCreateSchema | CollectionSchema | CollectionUpdateSchema,

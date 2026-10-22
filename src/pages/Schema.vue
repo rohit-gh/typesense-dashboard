@@ -1,15 +1,17 @@
 <template>
-  <q-page padding class="column">
-    <div class="row justify-between q-mb-md">
-      <div class="text-h5">
-        <q-icon size="md" name="sym_s_data_object" /> Schema for
-        {{ store.currentCollection?.name }}
+  <q-page class="page column">
+    <header class="page-head">
+      <div>
+        <h1 class="page-title">Schema</h1>
+        <p class="page-lede">
+          Fields for {{ store.currentCollection?.name || 'this collection' }}.
+        </p>
       </div>
       <q-btn unelevated color="negative" @click="drop(store.currentCollection?.name || '')"
-        >Drop Collection</q-btn
+        >Delete collection</q-btn
       >
-    </div>
-    <collection-ui :initial-schema="schema" primary-action-label="Update Schema" @submit="update" />
+    </header>
+    <collection-ui :initial-schema="schema" primary-action-label="Update schema" @submit="update" />
   </q-page>
 </template>
 
@@ -68,9 +70,10 @@ const schema = computed<CollectionSchema | CollectionCreateSchema>(() => {
 
 function drop(name: string) {
   $q.dialog({
-    title: 'Confirm',
-    message: `Drop ${name} and all documents?`,
-    cancel: true,
+    title: `Delete ${name}?`,
+    message: 'This deletes the collection and every document in it. It cannot be undone.',
+    cancel: { flat: true, label: 'Keep collection', color: 'primary' },
+    ok: { unelevated: true, label: 'Delete collection', color: 'negative' },
     persistent: true,
   }).onOk(() => {
     void store.dropCollection(name);

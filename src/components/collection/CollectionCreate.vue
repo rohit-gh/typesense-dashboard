@@ -1,20 +1,17 @@
 <template>
-  <q-list bordered class="rounded-borders">
-    <q-expansion-item
-      expand-separator
-      icon="sym_s_library_add"
-      expand-icon="sym_s_unfold_more"
-      expanded-icon="sym_s_unfold_less"
-      label="Add Collection"
-      header-class="bg-primary text-white"
-    >
-      <collection-ui
-        primary-action-label="Create Collection"
-        create-mode
-        @submit="createCollection"
-      />
-    </q-expansion-item>
-  </q-list>
+  <q-expansion-item
+    expand-separator
+    icon="sym_s_library_add"
+    expand-icon="sym_s_unfold_more"
+    expanded-icon="sym_s_unfold_less"
+    label="New collection"
+  >
+    <collection-ui
+      primary-action-label="Create collection"
+      create-mode
+      @submit="createCollection"
+    />
+  </q-expansion-item>
 </template>
 
 <script setup lang="ts">

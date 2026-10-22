@@ -20,9 +20,20 @@ export class Api {
   private typesenseClient?: Typesense.Client;
 
   public init({ node, apiKey }: { node: NodeConfiguration; apiKey: string }): void {
+    const port = Number(node.port);
+    const omitPort =
+      (node.protocol === 'https' && (port === 443 || !port)) ||
+      (node.protocol === 'http' && (port === 80 || !port));
+    const origin = omitPort
+      ? `${node.protocol}://${node.host}`
+      : `${node.protocol}://${node.host}:${node.port}`;
     this.axiosClient = axios.create({
-      baseURL: `${node.protocol}://${node.host}:${node.port}${node.path || ''}`,
-      headers: { 'x-typesense-api-key': apiKey },
+      baseURL: `${origin}${node.path || ''}`,
+      headers: { 'X-TYPESENSE-API-KEY': apiKey },
+    });
+    this.axiosClient.interceptors.request.use((config) => {
+      config.headers.set('X-TYPESENSE-API-KEY', apiKey);
+      return config;
     });
     this.typesenseClient = new Typesense.Client({
       nodes: [

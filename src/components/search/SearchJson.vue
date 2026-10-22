@@ -9,7 +9,7 @@
     <div class="col-3">
       <q-scroll-area style="height: 100%">
         <q-list bordered separator dense>
-          <q-item-label header>History</q-item-label>
+          <q-item-label header>Recent queries</q-item-label>
           <q-item
             v-for="h in history"
             :key="h"
@@ -37,7 +37,7 @@
       color="primary"
       :disable="!!jsonError"
       @click="search()"
-      >Run Query</q-btn
+      >Run query</q-btn
     >
     <q-btn
       size="md"
@@ -47,7 +47,7 @@
       class="q-ml-sm"
       :disable="!results || !results.hits"
       @click="exportHits()"
-      >Export Hits</q-btn
+      >Export hits</q-btn
     >
     <q-btn
       size="md"
@@ -57,19 +57,15 @@
       class="q-ml-sm"
       :disable="!results"
       @click="exportResults()"
-      >Export Raw Results</q-btn
+      >Export raw results</q-btn
     >
   </div>
-  <div v-if="hits" class="ais-Hits q-mt-md">
-    <ol class="ais-Hits-list">
-      <li v-for="item in hits" :key="item.id" class="ais-Hits-item">
-        <search-result-item :item="item" />
-      </li>
-    </ol>
-  </div>
-  <div v-if="results && results.hits && results.hits.length === 0" class="text-h5 q-mt-md">
-    No match found
-  </div>
+  <search-hits-ledger
+    v-if="results && results.hits"
+    class="q-mt-md"
+    :items="hits"
+    @deleted="removeHit"
+  />
   <pre v-if="results && !results.hits">
           {{ resultsJson }}
         </pre
@@ -81,7 +77,7 @@ import { computed, ref, watch } from 'vue';
 import { LocalStorage } from 'quasar';
 import { useNodeStore } from 'src/stores/node';
 import MonacoEditor from 'src/components/MonacoEditor.vue';
-import SearchResultItem from 'src/components/search/SearchResultItem.vue';
+import SearchHitsLedger from './SearchHitsLedger.vue';
 import type { SearchParams } from 'typesense/lib/Typesense/Documents';
 
 const store = useNodeStore();
@@ -146,6 +142,13 @@ const exportHits = () => {
     const data = results.value.hits.map((h: any) => h.document);
     store.exportToJson(data);
   }
+};
+
+const removeHit = (id: string) => {
+  if (!results.value?.hits) return;
+  results.value.hits = results.value.hits.filter((hit: { document?: { id?: string } }) => {
+    return hit.document?.id !== id;
+  });
 };
 
 const saveHistory = () => {

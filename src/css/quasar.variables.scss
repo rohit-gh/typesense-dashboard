@@ -1,75 +1,43 @@
-// Quasar SCSS (& Sass) Variables
-// --------------------------------------------------
-// To customize the look and feel of this app, you can override
-// the Sass/SCSS variables found in Quasar's source Sass/SCSS files.
+$typography-font-family:
+  'Open Sans', system-ui, sans-serif;
 
-// Check documentation for full list of Quasar variables
+$primary: #12100e;
+$secondary: #e6e2d6;
+$accent: #e6e2d6;
+$dark: #12100e;
+$dark-page: #12100e;
 
-// Your own variables (that are declared here) and Quasar's own
-// ones will be available out of the box in your .vue/.scss/.sass files
+$positive: #4f6b45;
+$negative: #9a3b32;
+$info: #12100e;
+$warning: #a67c2a;
 
-// It's highly recommended to change the default colors
-// to match your app's branding.
-// Tip: Use the "Theme Builder" on Quasar's documentation website.
+$generic-border-radius: 0;
+$button-border-radius: 0;
+$bar-border-radius: 0;
+$card-border-radius: 0;
+$dialog-border-radius: 0;
+$menu-border-radius: 0;
+$tooltip-border-radius: 0;
+$input-border-radius: 0;
+$chip-border-radius: 0;
+$badge-border-radius: 0;
+$notification-border-radius: 0;
+$tab-border-radius: 0;
 
-$primary: #1f2937;
-$secondary: #e69e3b;
-$accent: #31316a;
+$button-font-weight: 500;
+$button-border-width: 0;
+$button-padding: 8px 20px;
+$button-font-size: 16px;
 
-$dark: #111827;
+$separator-color: rgba(18, 16, 14, 0.18);
+$separator-dark-color: rgba(230, 226, 214, 0.18);
 
-$positive: #10b981;
-$negative: #e11d48;
-$info: #2361ce;
-$warning: #fba918;
-
-.body--light {
-  .bg-surface {
-    background-color: #eeeeee !important;
-    .q-field__control {
-      background-color: #ffffff !important;
-    }
-  }
-}
-
-.body--dark {
-  .q-radio__inner,
-  .q-tab--active .q-tab__label,
-  .q-field--highlighted .q-field__label {
-    color: #fff !important;
-  }
-
-  .ais-Breadcrumb,
-  .ais-ClearRefinements,
-  .ais-CurrentRefinements,
-  .ais-GeoSearch,
-  .ais-FrequentlyBoughtTogether,
-  .ais-HierarchicalMenu,
-  .ais-Hits,
-  .ais-Results,
-  .ais-HitsPerPage,
-  .ais-ResultsPerPage,
-  .ais-InfiniteHits,
-  .ais-InfiniteResults,
-  .ais-LookingSimilar,
-  .ais-Menu,
-  .ais-MenuSelect,
-  .ais-NumericMenu,
-  .ais-NumericSelector,
-  .ais-Pagination,
-  .ais-Panel,
-  .ais-PoweredBy,
-  .ais-RangeInput,
-  .ais-RangeSlider,
-  .ais-RatingMenu,
-  .ais-RefinementList,
-  .ais-RelatedProducts,
-  .ais-SearchBox,
-  .ais-RelevantSort,
-  .ais-SortBy,
-  .ais-Stats,
-  .ais-TrendingItems,
-  .ais-ToggleRefinement {
-    color: #ffffffab !important;
-  }
-}
+$body-font-size: 16px;
+$body-line-height: 1.45;
+$h1-font-size: 2rem;
+$h2-font-size: 1.25rem;
+$h3-font-size: 1.125rem;
+$h4-font-size: 16px;
+$h5-font-size: 16px;
+$h6-font-size: 16px;

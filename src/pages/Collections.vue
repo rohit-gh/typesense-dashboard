@@ -1,85 +1,98 @@
 <template>
-  <q-page padding>
-    <collection-create></collection-create>
-    <q-table
-      :filter="state.filter"
-      :columns="state.columns"
-      :rows="store.data.collections"
-      row-key="name"
-      :pagination="{ rowsPerPage: 0, sortBy: 'name' }"
-    >
-      <template #body="props">
-        <q-tr :props="props">
-          <q-td key="name" :props="props">
-            <q-btn
-              no-caps
-              flat
-              :to="`/collection/${props.row.name}/search`"
-              size="1.2em"
-              class="text-bold"
-              >{{ props.row.name }}</q-btn
-            >
-          </q-td>
-          <q-td key="actions" :props="props">
-            <q-btn flat round icon="sym_s_more_vert">
-              <q-menu>
-                <q-item dense clickable :to="`/collection/${props.row.name}/document`">
-                  <q-item-section>Import</q-item-section>
-                  <q-item-section avatar>
-                    <q-avatar icon="sym_s_file_upload" />
-                  </q-item-section>
-                </q-item>
-                <q-item dense clickable @click="exportCollection(props.row.name)">
-                  <q-item-section>Export</q-item-section>
-                  <q-item-section avatar>
-                    <q-avatar icon="sym_s_file_download" />
-                  </q-item-section>
-                </q-item>
-                <q-item dense clickable :to="`/collection/${props.row.name}/schema`">
-                  <q-item-section>Edit</q-item-section>
-                  <q-item-section avatar>
-                    <q-avatar icon="sym_s_data_object" />
-                  </q-item-section>
-                </q-item>
-                <q-item dense clickable @click="cloneCollection(props.row.name)">
-                  <q-item-section>Clone Schema</q-item-section>
-                  <q-item-section avatar>
-                    <q-avatar icon="sym_s_content_copy" />
-                  </q-item-section>
-                </q-item>
-                <q-item dense clickable flat style="color: #de3b39" @click="drop(props.row.name)">
-                  <q-item-section>Delete</q-item-section>
-                  <q-item-section avatar>
-                    <q-avatar icon="sym_s_delete" />
-                  </q-item-section>
-                </q-item>
-              </q-menu>
-            </q-btn>
-          </q-td>
-          <q-td key="num_documents" :props="props">
-            <q-btn no-caps flat :to="`/collection/${props.row.name}/search`"
-              >{{ props.row.num_documents }} <q-icon name="sym_s_search" size="1em" right
-            /></q-btn>
-          </q-td>
-          <q-td key="schema_fields" :props="props">
-            <q-btn no-caps flat :to="`/collection/${props.row.name}/schema`"
-              >{{ props.row.fields.length || 0 }} <q-icon name="sym_s_data_object" size="1em" right
-            /></q-btn>
-          </q-td>
-          <q-td key="created_at" :props="props">
-            {{ new Date(props.row.created_at * 1000).toLocaleString() }}
-          </q-td>
-        </q-tr>
-      </template>
+  <q-page class="page">
+    <header class="page-head">
+      <div>
+        <h1 class="page-title">Collections</h1>
+        <p class="page-lede">Schemas on this node, with document counts and field totals.</p>
+      </div>
+      <q-input
+        v-model="state.filter"
+        borderless
+        debounce="300"
+        class="page-filter"
+        placeholder="Filter collections"
+      >
+        <template #append>
+          <q-icon name="sym_s_search" />
+        </template>
+      </q-input>
+    </header>
 
-      <template #top-right>
-        <q-input v-model="state.filter" borderless dense debounce="300" placeholder="Search">
-          <template #append>
-            <q-icon name="sym_s_search" />
-          </template>
-        </q-input>
-      </template>
-    </q-table>
+    <section class="composer">
+      <collection-create></collection-create>
+    </section>
+
+    <section class="page-section">
+      <q-table
+        hide-pagination
+        :filter="state.filter"
+        :columns="state.columns"
+        :rows="store.data.collections"
+        row-key="name"
+        :pagination="{ rowsPerPage: 0, sortBy: 'name' }"
+      >
+        <template #body="props">
+          <q-tr :props="props">
+            <q-td key="name" :props="props">
+              <q-btn no-caps flat :to="`/collection/${props.row.name}/search`">{{
+                props.row.name
+              }}</q-btn>
+            </q-td>
+            <q-td key="actions" :props="props">
+              <q-btn flat round icon="sym_s_more_vert" aria-label="Collection actions">
+                <q-menu>
+                  <q-item dense clickable :to="`/collection/${props.row.name}/document`">
+                    <q-item-section>Import documents</q-item-section>
+                    <q-item-section avatar>
+                      <q-avatar icon="sym_s_file_upload" />
+                    </q-item-section>
+                  </q-item>
+                  <q-item dense clickable @click="exportCollection(props.row.name)">
+                    <q-item-section>Export documents</q-item-section>
+                    <q-item-section avatar>
+                      <q-avatar icon="sym_s_file_download" />
+                    </q-item-section>
+                  </q-item>
+                  <q-item dense clickable :to="`/collection/${props.row.name}/schema`">
+                    <q-item-section>Edit schema</q-item-section>
+                    <q-item-section avatar>
+                      <q-avatar icon="sym_s_data_object" />
+                    </q-item-section>
+                  </q-item>
+                  <q-item dense clickable @click="cloneCollection(props.row.name)">
+                    <q-item-section>Clone schema</q-item-section>
+                    <q-item-section avatar>
+                      <q-avatar icon="sym_s_content_copy" />
+                    </q-item-section>
+                  </q-item>
+                  <q-item dense clickable class="text-negative" @click="drop(props.row.name)">
+                    <q-item-section>Delete collection</q-item-section>
+                    <q-item-section avatar>
+                      <q-avatar icon="sym_s_delete" />
+                    </q-item-section>
+                  </q-item>
+                </q-menu>
+              </q-btn>
+            </q-td>
+            <q-td key="num_documents" :props="props">
+              <q-btn no-caps flat :to="`/collection/${props.row.name}/search`"
+                >{{ props.row.num_documents }}
+                <q-icon name="sym_s_search" size="1em" right />
+              </q-btn>
+            </q-td>
+            <q-td key="schema_fields" :props="props">
+              <q-btn no-caps flat :to="`/collection/${props.row.name}/schema`"
+                >{{ props.row.fields.length || 0 }}
+                <q-icon name="sym_s_data_object" size="1em" right />
+              </q-btn>
+            </q-td>
+            <q-td key="created_at" :props="props">
+              {{ new Date(props.row.created_at * 1000).toLocaleString() }}
+            </q-td>
+          </q-tr>
+        </template>
+      </q-table>
+    </section>
   </q-page>
 </template>
 
@@ -105,28 +118,28 @@ const state = reactive({
     {
       name: 'actions',
       required: false,
-      label: 'Actions',
+      label: '',
       field: 'actions',
       sortable: false,
     },
     {
       name: 'num_documents',
       required: true,
-      label: 'Nb documents',
+      label: 'Documents',
       field: 'num_documents',
       sortable: true,
     },
     {
       name: 'schema_fields',
       required: true,
-      label: 'Schema fields',
+      label: 'Fields',
       field: 'fields',
       sortable: true,
     },
     {
       name: 'created_at',
       required: true,
-      label: 'Created at',
+      label: 'Created',
       field: 'created_at',
       sortable: true,
     },
@@ -139,9 +152,7 @@ onMounted(() => {
 
 async function exportCollection(collectionName: string) {
   $q.loading.show({
-    message: 'Downloading. Please wait...',
-    boxClass: 'bg-grey-2 text-grey-9',
-    spinnerColor: 'primary',
+    message: 'Exporting documents…',
   });
 
   try {
@@ -149,7 +160,7 @@ async function exportCollection(collectionName: string) {
   } catch {
     $q.dialog({
       title: 'Export failed',
-      message: 'Try desktop version of the app.',
+      message: 'Use the desktop app for large collections.',
     });
   } finally {
     $q.loading.hide();
@@ -158,9 +169,10 @@ async function exportCollection(collectionName: string) {
 
 function drop(name: string) {
   $q.dialog({
-    title: 'Confirm',
-    message: `Drop ${name} and all documents?`,
-    cancel: true,
+    title: `Delete ${name}?`,
+    message: `This deletes the collection and every document in it. It cannot be undone.`,
+    cancel: { flat: true, label: 'Keep collection', color: 'primary' },
+    ok: { unelevated: true, label: 'Delete collection', color: 'negative' },
     persistent: true,
   }).onOk(() => {
     void store.dropCollection(name);
@@ -169,14 +181,14 @@ function drop(name: string) {
 
 function cloneCollection(collectionName: string) {
   $q.dialog({
-    title: 'Clone Schema',
-    message:
-      'Provide name for new collection? (documents are not copied!, only schema, currations and synonyms)',
+    title: 'Clone schema',
+    message: 'Name the new collection. Schema, synonyms, and curations are copied; documents are not.',
     prompt: {
       model: '',
       type: 'text',
     },
-    cancel: true,
+    cancel: { flat: true, label: 'Cancel', color: 'primary' },
+    ok: { unelevated: true, label: 'Clone schema', color: 'primary' },
     persistent: true,
   }).onOk((destinationName) => {
     void store.cloneCollectionSchema({

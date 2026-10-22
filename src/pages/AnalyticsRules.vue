@@ -1,134 +1,122 @@
 <template>
-  <q-page padding>
-    <q-list bordered class="rounded-borders">
+  <q-page class="page">
+    <header class="page-head">
+      <div>
+        <h1 class="page-title">Analytics</h1>
+        <p class="page-lede">Rules that capture popular, no-hit, and counter queries.</p>
+      </div>
+      <q-input
+        v-model="state.filter"
+        borderless
+        debounce="300"
+        class="page-filter"
+        placeholder="Filter rules"
+      >
+        <template #append>
+          <q-icon name="sym_s_search" />
+        </template>
+      </q-input>
+    </header>
+
+    <section class="composer">
       <q-expansion-item
         v-model="state.expanded"
         expand-separator
         icon="sym_s_add_circle"
         expand-icon="sym_s_unfold_more"
         expanded-icon="sym_s_unfold_less"
-        :label="`${isUpdate ? 'Update' : 'Add'} Analytics Rule`"
-        header-class="bg-primary text-white"
+        :label="isUpdate ? 'Update rule' : 'New rule'"
       >
-        <q-card>
-          <q-tabs
-            v-model="tab"
-            dense
-            class="text-grey"
-            active-color="primary"
-            indicator-color="primary"
-            align="justify"
-            narrow-indicator
-          >
-            <q-tab name="form" label="Form Mode" />
-            <q-tab name="json" label="JSON Mode" />
-          </q-tabs>
-          <q-separator />
-          <q-tab-panels v-model="tab" animated class="bg-surface">
-            <q-tab-panel name="form">
-              <q-card-section class="row q-col-gutter-md">
-                <q-input
-                  v-model="state.rule.name"
-                  class="col-12 col-sm-6"
-                  label="Rule Name"
-                  filled
-                  :rules="[(val) => !!val || 'Field is required']"
-                />
-                <q-select
-                  v-model="state.rule.type"
-                  :options="typeOptions"
-                  class="col-12 col-sm-6"
-                  label="Rule Type"
-                  filled
-                  :rules="[(val) => !!val || 'Field is required']"
-                />
-              </q-card-section>
-              <q-card-section class="row q-col-gutter-md">
-                <q-select
-                  v-model="state.rule.params.source.collections"
-                  class="col-12 col-sm-6"
-                  label="Source Collection(s)"
-                  filled
-                  :options="sourceOptions"
-                  multiple
-                  hint="Track searches sent to these collections or aliases"
-                ></q-select>
-                <q-select
-                  v-model="state.rule.params.destination.collection"
-                  class="col-12 col-sm-6"
-                  label="Destination Collection"
-                  filled
-                  :options="sourceOptions"
-                ></q-select>
-              </q-card-section>
-              <q-card-section class="row q-col-gutter-md">
-                <q-input
-                  v-model="state.rule.params.limit"
-                  class="col-12 col-sm-6"
-                  label="Limit"
-                  filled
-                  type="number"
-                  min="0"
-                />
-                <q-checkbox
-                  v-model="state.rule.params.expand_query"
-                  class="col-12 col-sm-6"
-                  label="Expand Query"
-                  filled
-                />
-              </q-card-section>
-            </q-tab-panel>
-            <q-tab-panel name="json" class="q-pa-none">
-              <monaco-editor v-model="ruleJson" style="height: 60vh"></monaco-editor>
-              <q-banner v-if="jsonError" inline-actions class="text-white bg-red">
-                Invalid Format: {{ jsonError }}
-              </q-banner>
-            </q-tab-panel>
-          </q-tab-panels>
-          <q-separator />
-          <q-card-actions align="right" class="bg-primary">
-            <q-btn size="md" padding="sm lg" unelevated color="primary" @click="createRule()">
-              {{ isUpdate ? 'Update' : 'Add' }} Rule
-            </q-btn>
-          </q-card-actions>
-        </q-card>
+        <q-tabs v-model="tab" dense align="left" narrow-indicator>
+          <q-tab name="form" label="Form" />
+          <q-tab name="json" label="JSON" />
+        </q-tabs>
+        <q-tab-panels v-model="tab" animated>
+          <q-tab-panel name="form" class="q-px-none">
+            <div class="row q-col-gutter-md">
+              <q-input
+                v-model="state.rule.name"
+                class="col-12 col-sm-6"
+                label="Rule name"
+                borderless
+                :rules="[(val) => !!val || 'Enter a rule name']"
+              />
+              <q-select
+                v-model="state.rule.type"
+                :options="typeOptions"
+                class="col-12 col-sm-6"
+                label="Rule type"
+                borderless
+                :rules="[(val) => !!val || 'Choose a rule type']"
+              />
+              <q-select
+                v-model="state.rule.params.source.collections"
+                class="col-12 col-sm-6"
+                label="Source collections"
+                borderless
+                :options="sourceOptions"
+                multiple
+                hint="Track searches sent to these collections or aliases"
+              />
+              <q-select
+                v-model="state.rule.params.destination.collection"
+                class="col-12 col-sm-6"
+                label="Destination collection"
+                borderless
+                :options="sourceOptions"
+              />
+              <q-input
+                v-model="state.rule.params.limit"
+                class="col-12 col-sm-6"
+                label="Limit"
+                borderless
+                type="number"
+                min="0"
+              />
+              <q-checkbox
+                v-model="state.rule.params.expand_query"
+                class="col-12 col-sm-6"
+                label="Expand query"
+              />
+            </div>
+          </q-tab-panel>
+          <q-tab-panel name="json" class="q-pa-none">
+            <monaco-editor v-model="ruleJson" style="height: 60vh"></monaco-editor>
+            <q-banner v-if="jsonError" inline-actions>
+              This JSON is invalid: {{ jsonError }}
+            </q-banner>
+          </q-tab-panel>
+        </q-tab-panels>
+        <div class="row justify-end q-py-md">
+          <q-btn unelevated color="primary" @click="createRule()">
+            {{ isUpdate ? 'Update rule' : 'Add rule' }}
+          </q-btn>
+        </div>
       </q-expansion-item>
-    </q-list>
+    </section>
 
-    <q-table
-      class="q-mt-md"
-      title="Analytics Rules"
-      flat
-      bordered
-      :filter="state.filter"
-      :rows="store.data.analyticsRules"
-      :columns="state.columns"
-      row-key="name"
-      :pagination="{ rowsPerPage: 50, sortBy: 'name' }"
-    >
-      <template #top-left>
-        <div class="text-h6"><q-icon size="md" name="sym_s_query_stats" /> Analytics Rules</div>
-      </template>
-      <template #top-right>
-        <q-input v-model="state.filter" borderless dense debounce="300" placeholder="Search">
-          <template #append>
-            <q-icon name="sym_s_search" />
-          </template>
-        </q-input>
-      </template>
-      <template #body-cell-actions="props">
-        <q-td class="text-right">
-          <q-btn flat icon="sym_s_edit" title="Edit" @click="editRule(props.row)"></q-btn>
-          <q-btn
-            flat
-            color="negative"
-            icon="sym_s_delete_forever"
-            title="Delete"
-            @click="deleteRule(props.row.name)"
-          ></q-btn>
-        </q-td>
-      </template>
-    </q-table>
+    <section class="page-section">
+      <q-table
+        :filter="state.filter"
+        :rows="store.data.analyticsRules"
+        :columns="state.columns"
+        row-key="name"
+        :pagination="{ rowsPerPage: 50, sortBy: 'name' }"
+      >
+        <template #body-cell-actions="props">
+          <q-td class="text-right">
+            <q-btn flat icon="sym_s_edit" title="Edit rule" @click="editRule(props.row)"></q-btn>
+            <q-btn
+              flat
+              color="negative"
+              icon="sym_s_delete_forever"
+              title="Delete rule"
+              @click="deleteRule(props.row.name)"
+            ></q-btn>
+          </q-td>
+        </template>
+      </q-table>
+    </section>
   </q-page>
 </template>
 
@@ -166,28 +154,28 @@ const state = reactive({
   filter: '',
   columns: [
     {
-      label: 'Rule Name',
+      label: 'Name',
       name: 'name',
       field: 'name',
       align: 'left',
       sortable: true,
     },
     {
-      label: 'Rule Type',
+      label: 'Type',
       name: 'type',
       field: 'type',
       align: 'left',
       sortable: true,
     },
     {
-      label: 'Source Collection(s)',
+      label: 'Source',
       name: 'source',
       field: (r: AnalyticsRuleSchema) => r.params.source.collections.join(', '),
       align: 'left',
       sortable: true,
     },
     {
-      label: 'Destination Collection',
+      label: 'Destination',
       name: 'destination',
       field: (r: AnalyticsRuleSchema) => r.params.destination.collection,
       align: 'left',
@@ -201,7 +189,7 @@ const state = reactive({
       sortable: true,
     },
     {
-      label: 'Actions',
+      label: '',
       name: 'actions',
       align: 'right',
     },
@@ -251,9 +239,10 @@ function editRule(rule: AnalyticsRuleSchema) {
 
 function deleteRule(name: string) {
   $q.dialog({
-    title: 'Confirm',
-    message: `Delete analytics rule ${name}?`,
-    cancel: true,
+    title: `Delete rule ${name}?`,
+    message: 'This stops capturing queries for this rule.',
+    cancel: { flat: true, label: 'Keep rule', color: 'primary' },
+    ok: { unelevated: true, label: 'Delete rule', color: 'negative' },
     persistent: true,
   }).onOk(() => {
     void store.deleteAnalyticsRule(name);

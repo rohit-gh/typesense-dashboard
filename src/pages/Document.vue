@@ -1,9 +1,11 @@
 <template>
-  <q-page padding class="column">
-    <div class="row justify-between q-mb-md">
-      <div class="text-h5">
-        <q-icon size="md" name="sym_s_library_add" /> Add Documents to
-        {{ store.currentCollection?.name }}
+  <q-page class="page column">
+    <header class="page-head">
+      <div>
+        <h1 class="page-title">Add documents</h1>
+        <p class="page-lede">
+          Import JSON into {{ store.currentCollection?.name || 'this collection' }}.
+        </p>
       </div>
       <q-btn
         unelevated
@@ -11,42 +13,28 @@
         icon="sym_s_attach_file"
         @click="importFile()"
       >
-        Import from file
-        <span v-if="!$q.platform.is.electron"> (only desktop version)</span>
+        {{ $q.platform.is.electron ? 'Import from file' : 'Import from file (desktop app)' }}
       </q-btn>
-    </div>
+    </header>
+
     <monaco-editor v-model="documentsJson" style="min-height: 200px"></monaco-editor>
-    <q-banner v-if="state.jsonError" inline-actions class="text-white bg-red">
-      Invalid Format: {{ state.jsonError }}
+    <q-banner v-if="state.jsonError" inline-actions>
+      This JSON is invalid: {{ state.jsonError }}
     </q-banner>
-    <div class="row q-mb-md bg-primary text-white justify-between">
-      <q-btn unelevated size="md" padding="sm lg" color="primary" @click="addEmptyDocument()"
-        >Add empty Document</q-btn
-      >
-      <div class="row col-auto">
+
+    <div class="row items-end justify-between q-col-gutter-md q-my-md">
+      <q-btn unelevated color="primary" @click="addEmptyDocument()">Add empty document</q-btn>
+      <div class="row col-auto items-end q-gutter-md">
         <q-select
           v-model="state.action"
-          dark
-          bottom-slots
-          label="Action mode"
-          filled
-          style="width: 300px"
+          borderless
+          label="Import mode"
+          style="width: 18rem"
           :options="actionOptions"
-        >
-          <template #hint>
-            <div>
-              {{ actionDescriptions[state.action] }}
-            </div>
-          </template>
-        </q-select>
-        <q-btn
-          unelevated
-          size="md"
-          padding="sm xl"
-          color="primary"
-          :disable="!!state.jsonError"
-          @click="importDocuments()"
-          >Import</q-btn
+          :hint="actionDescriptions[state.action]"
+        />
+        <q-btn unelevated color="primary" :disable="!!state.jsonError" @click="importDocuments()"
+          >Import documents</q-btn
         >
       </div>
     </div>
@@ -55,11 +43,11 @@
       <q-banner
         v-for="(result, index) in state.results"
         :key="index"
-        class="text-white"
         :class="{ 'bg-green': result.success, 'bg-red': result.error }"
       >
-        {{ index }}: <span v-if="result.success"> {{ result.success }}</span
-        ><span v-else>{{ result.error }}</span>
+        {{ index }}:
+        <span v-if="result.success">{{ result.success }}</span>
+        <span v-else>{{ result.error }}</span>
       </q-banner>
     </div>
   </q-page>
@@ -83,9 +71,9 @@ const state = reactive({
 
 const actionOptions = ['create', 'upsert', 'update'];
 const actionDescriptions = {
-  create: 'Create a new document. Fails if id exists.',
-  upsert: 'Create a new document or update an existing document.',
-  update: 'Update an existing document. Partial document allowed.',
+  create: 'Create a document. Fails if the id already exists.',
+  upsert: 'Create the document, or replace it if the id exists.',
+  update: 'Update an existing document. Partial documents are allowed.',
 };
 
 const documentsJson = computed({
@@ -125,9 +113,7 @@ async function importFile() {
   state.results = [];
   try {
     $q.loading.show({
-      message: 'Uploading. Please wait...',
-      boxClass: 'bg-grey-2 text-grey-9',
-      spinnerColor: 'primary',
+    message: 'Importing documents…',
     });
     // @ts-expect-error electron only
     let results = await store.api?.importFile(store.currentCollection?.name, state.action);
@@ -145,9 +131,7 @@ async function importDocuments() {
   state.results = [];
   try {
     $q.loading.show({
-      message: 'Uploading. Please wait...',
-      boxClass: 'bg-grey-2 text-grey-9',
-      spinnerColor: 'primary',
+    message: 'Importing documents…',
     });
     state.results = await store.importDocuments({
       action: state.action,

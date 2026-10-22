@@ -1,45 +1,61 @@
 <template>
-  <q-page padding>
-    <q-expansion-item
-      v-model="state.expanded"
-      expand-separator
-      icon="sym_s_add_circle"
-      expand-icon="sym_s_unfold_more"
-      expanded-icon="sym_s_unfold_less"
-      :label="`${isUpdate ? 'Update' : 'Add'} Stopwords Set`"
-      header-class="bg-primary text-white"
-    >
-      <q-card class="bg-surface column">
-        <q-card-section class="q-col-gutter-md row">
+  <q-page class="page">
+    <header class="page-head">
+      <div>
+        <h1 class="page-title">Stopwords</h1>
+        <p class="page-lede">Words dropped from queries when a set is attached to a search.</p>
+      </div>
+      <q-input
+        v-model="state.filter"
+        borderless
+        debounce="300"
+        class="page-filter"
+        placeholder="Filter sets"
+      >
+        <template #append>
+          <q-icon name="sym_s_search" />
+        </template>
+      </q-input>
+    </header>
+
+    <section class="composer">
+      <q-expansion-item
+        v-model="state.expanded"
+        expand-separator
+        icon="sym_s_add_circle"
+        expand-icon="sym_s_unfold_more"
+        expanded-icon="sym_s_unfold_less"
+        :label="isUpdate ? 'Update set' : 'New set'"
+      >
+        <div class="row q-col-gutter-md q-py-md">
           <q-input
             v-model="state.stopwordsSet.id"
             class="col-12 col-sm-6"
             label="ID"
-            filled
-            :rules="[(val) => !!val || 'Field is required']"
+            borderless
+            :rules="[(val) => !!val || 'Enter a set ID']"
           />
           <q-input
             v-model="state.stopwordsSet.locale"
-            filled
+            borderless
             label="Locale"
             class="col-12 col-sm-4"
           />
           <q-btn
             type="a"
-            icon="sym_s_help"
             no-caps
-            color="info"
             flat
             dense
+            class="col-auto"
             :href="`https://typesense.org/docs/${store.data.debug.version || store.data.defaultDocVersion}/api/stopwords.html`"
             target="_blank"
           >
-            Documentation
+            Stopword documentation
           </q-btn>
           <q-select
             v-model="state.stopwordsSet.stopwords"
             class="col-12"
-            filled
+            borderless
             multiple
             use-chips
             use-input
@@ -47,71 +63,58 @@
             stack-label
             hide-dropdown-icon
             label="Stopwords"
-            hint="Enter a stopword and press enter"
+            hint="Type a word and press Enter"
           />
-        </q-card-section>
-        <q-banner v-if="state.jsonError" inline-actions class="text-white bg-red">
-          Invalid Format: {{ state.jsonError }}
+        </div>
+        <q-banner v-if="state.jsonError" inline-actions>
+          This JSON is invalid: {{ state.jsonError }}
         </q-banner>
-
-        <q-card-actions align="right" class="bg-primary">
+        <div class="row justify-end q-py-md">
           <q-btn
-            size="md"
-            padding="sm lg"
             unelevated
             color="primary"
             :disable="!!state.jsonError"
             @click="createStopwordsSet()"
-            >{{ isUpdate ? 'Update' : 'Add' }} Set
+            >{{ isUpdate ? 'Update set' : 'Add set' }}
           </q-btn>
-        </q-card-actions>
-      </q-card>
-    </q-expansion-item>
-
-    <q-table
-      class="q-mt-md"
-      title="Search Presets"
-      flat
-      bordered
-      wrap-cells
-      :filter="state.filter"
-      :rows="store.data.stopwords"
-      :columns="state.columns"
-      row-key="id"
-    >
-      <template #top-left>
-        <div class="text-h6">
-          <q-icon size="md" name="sym_s_playlist_remove" />
-          Stopwords Sets
         </div>
-      </template>
-      <template #top-right>
-        <q-input v-model="state.filter" borderless dense debounce="300" placeholder="Search">
-          <template #append>
-            <q-icon name="sym_s_search" />
-          </template>
-        </q-input>
-      </template>
-      <template #body-cell-stopwords="props">
-        <q-td>
-          <q-chip v-for="stopword in props.row.stopwords" :key="stopword">
-            {{ stopword }}
-          </q-chip>
-        </q-td>
-      </template>
-      <template #body-cell-actions_op="props">
-        <q-td class="text-right text-no-wrap">
-          <q-btn flat icon="sym_s_edit" title="Edit" @click="editStopwordsSet(props.row)"></q-btn>
-          <q-btn
-            flat
-            color="negative"
-            icon="sym_s_delete_forever"
-            title="Delete"
-            @click="deleteStopwordsSet(props.row.id)"
-          ></q-btn>
-        </q-td>
-      </template>
-    </q-table>
+      </q-expansion-item>
+    </section>
+
+    <section class="page-section">
+      <q-table
+        wrap-cells
+        :filter="state.filter"
+        :rows="store.data.stopwords"
+        :columns="state.columns"
+        row-key="id"
+      >
+        <template #body-cell-stopwords="props">
+          <q-td>
+            <q-chip v-for="stopword in props.row.stopwords" :key="stopword">
+              {{ stopword }}
+            </q-chip>
+          </q-td>
+        </template>
+        <template #body-cell-actions_op="props">
+          <q-td class="text-right text-no-wrap">
+            <q-btn
+              flat
+              icon="sym_s_edit"
+              title="Edit set"
+              @click="editStopwordsSet(props.row)"
+            ></q-btn>
+            <q-btn
+              flat
+              color="negative"
+              icon="sym_s_delete_forever"
+              title="Delete set"
+              @click="deleteStopwordsSet(props.row.id)"
+            ></q-btn>
+          </q-td>
+        </template>
+      </q-table>
+    </section>
   </q-page>
 </template>
 
@@ -157,7 +160,7 @@ const state = reactive({
       align: 'left',
     },
     {
-      label: 'Actions',
+      label: '',
       name: 'actions_op',
       align: 'right',
     },
@@ -179,9 +182,10 @@ function editStopwordsSet(stopwordsSet: StopwordSchema) {
 
 function deleteStopwordsSet(id: string) {
   $q.dialog({
-    title: 'Confirm',
-    message: `Delete stopwords set ${id}?`,
-    cancel: true,
+    title: `Delete stopwords set ${id}?`,
+    message: 'Searches that reference this set will stop dropping these words.',
+    cancel: { flat: true, label: 'Keep set', color: 'primary' },
+    ok: { unelevated: true, label: 'Delete set', color: 'negative' },
     persistent: true,
   }).onOk(() => {
     void store.deleteStopwords(id);

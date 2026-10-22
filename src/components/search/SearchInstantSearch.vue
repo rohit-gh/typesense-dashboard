@@ -12,56 +12,60 @@
     <ais-stats></ais-stats>
     <ais-current-refinements />
 
-    <div class="row q-mt-md">
-      <div class="col-3 q-pr-sm">
-        <ais-hits-per-page
-          :items="[
-            { label: '12 hits per page', value: 12, default: true },
-            { label: '48 hits per page', value: 48 },
-            { label: '100 hits per page', value: 100 },
-            { label: '250 hits per page', value: 250 },
-          ]"
+    <div class="search-layout q-mt-md">
+      <aside class="search-facets" aria-label="Filters">
+        <div class="facet-toolbar">
+          <ais-hits-per-page
+            :items="[
+              { label: '12 per page', value: 12, default: true },
+              { label: '48 per page', value: 48 },
+              { label: '100 per page', value: 100 },
+              { label: '250 per page', value: 250 },
+            ]"
+          />
+          <q-btn flat no-caps dense class="facet-export" @click="exportPage()"
+            >Export this page</q-btn
+          >
+        </div>
+
+        <div class="facet-field">
+          <div class="text-subtitle2">Sort</div>
+          <ais-sort-by :items="sortBy" />
+        </div>
+
+        <div class="facet-field">
+          <div class="text-subtitle2">Stopwords</div>
+          <q-select
+            v-model="currentStopwordsSet"
+            :disable="!store.data.features.stopwords"
+            outlined
+            clearable
+            dense
+            options-dense
+            :options="stopwords"
+            @update:model-value="updateTypesenseAdapterConfiguration()"
+          ></q-select>
+        </div>
+
+        <div v-for="name in facetNumberFields" :key="name" class="facet-field">
+          <div class="text-subtitle2">{{ name }}</div>
+          <ais-range-input :attribute="name" />
+        </div>
+
+        <search-facet-list
+          v-for="name in facetStringFields"
+          :key="name"
+          :attribute="name"
+          searchable
         />
-        <q-btn flat @click="exportPage()">export current page</q-btn>
 
-        <div class="text-subtitle2 q-pt-md">Sort By</div>
-        <ais-sort-by :items="sortBy" />
-
-        <div class="text-subtitle2 q-pt-md">Stopwords</div>
-        <q-select
-          v-model="currentStopwordsSet"
-          :disable="!store.data.features.stopwords"
-          outlined
-          clearable
-          dense
-          options-dense
-          :options="stopwords"
-          @update:model-value="updateTypesenseAdapterConfiguration()"
-        ></q-select>
-
-        <div v-for="name in facetNumberFields" :key="name" class="q-mb-sm">
-          <div class="text-subtitle2 q-pt-md">{{ name }}</div>
-          <ais-range-input :searchable="true" :attribute="name" />
-        </div>
-
-        <div v-for="name in facetStringFields" :key="name" class="q-mb-sm">
-          <div class="text-subtitle2 q-pt-md">{{ name }}</div>
-          <ais-refinement-list class="q-mb-sm" :searchable="true" :attribute="name" />
-        </div>
-
-        <div v-for="name in facetBooleanFields" :key="name" class="q-mb-sm">
-          <div class="text-subtitle2 q-pt-md">{{ name }}</div>
-          <ais-refinement-list class="q-mb-sm" :attribute="name" />
-        </div>
-      </div>
-      <div class="col-9">
+        <search-facet-list v-for="name in facetBooleanFields" :key="name" :attribute="name" />
+      </aside>
+      <div class="search-hits">
         <ais-pagination class="q-mb-md" />
         <ais-hits>
-          <template v-if="currentCollection" #item="{ item }">
-            <search-result-item
-              :item="item"
-              @deleted="instantSearchInstance.refresh()"
-            ></search-result-item>
+          <template #default="{ items }">
+            <search-hits-ledger :items="items || []" @deleted="instantSearchInstance.refresh()" />
           </template>
         </ais-hits>
         <ais-pagination class="q-my-md" />
@@ -77,9 +81,23 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { useNodeStore } from 'src/stores/node';
-import SearchResultItem from 'src/components/search/SearchResultItem.vue';
-import DebouncedSearchBox from 'src/components/search/DebouncedSearchBox.vue';
+import {
+  AisConfigure,
+  AisCurrentRefinements,
+  AisHits,
+  AisHitsPerPage,
+  AisInstantSearch,
+  AisPagination,
+  AisRangeInput,
+  AisSearchBox,
+  AisSortBy,
+  AisStats,
+} from 'vue-instantsearch/vue3/es';
+import 'instantsearch.css/themes/reset.css';
+import { useNodeStore } from '../../stores/node';
+import SearchHitsLedger from './SearchHitsLedger.vue';
+import SearchFacetList from './SearchFacetList.vue';
+import DebouncedSearchBox from './DebouncedSearchBox.vue';
 import TypesenseInstantSearchAdapter from 'typesense-instantsearch-adapter';
 import type { CollectionSchema } from 'typesense/lib/Typesense/Collection';
 
@@ -217,27 +235,3 @@ watch(
   { immediate: true },
 );
 </script>
-
-<style>
-.body--dark .ais-SearchBox-input,
-.body--dark .ais-MenuSelect-select,
-.body--dark .ais-NumericSelector-select,
-.body--dark .ais-HitsPerPage-select,
-.body--dark .ais-ResultsPerPage-select,
-.body--dark .ais-SortBy-select {
-  background-color: rgba(255, 255, 255, 0.07);
-  color: #fff;
-}
-
-.body--dark .ais-InstantSearch option {
-  background-color: #1f2937;
-  color: #fff;
-}
-
-.ais-InfiniteHits-item,
-.ais-InfiniteResults-item,
-.ais-Hits-item,
-.ais-Results-item {
-  box-shadow: none;
-}
-</style>

@@ -1,90 +1,88 @@
 <template>
-  <q-page padding>
-    <q-expansion-item
-      v-model="state.expanded"
-      expand-separator
-      icon="sym_s_add_circle"
-      expand-icon="sym_s_unfold_more"
-      expanded-icon="sym_s_unfold_less"
-      label="Create API Key"
-      header-class="bg-primary text-white"
-    >
-      <q-card style="height: 60vh" class="bg-surface column">
-        <q-card-section class="q-gutter-md">
-          <q-btn flat @click="loadAdminKey">Admin Key Example</q-btn>
-          <q-btn flat @click="loadSearchKey">Search Key Example</q-btn>
-          <q-btn
-            type="a"
-            icon="sym_s_help"
-            no-caps
-            color="info"
-            flat
-            dense
-            :href="`https://typesense.org/docs/${store.data.debug.version || store.data.defaultDocVersion}/api/api-keys.html#create-an-api-key`"
-            target="_blank"
-            >Documentation</q-btn
-          >
-        </q-card-section>
-        <monaco-editor v-model="keyJson"></monaco-editor>
-        <q-banner v-if="state.jsonError" inline-actions class="text-white bg-red">
-          Invalid Format: {{ state.jsonError }}
-        </q-banner>
+  <q-page class="page">
+    <header class="page-head">
+      <div>
+        <h1 class="page-title">API keys</h1>
+        <p class="page-lede">Create scoped keys. The full value is shown once, at creation.</p>
+      </div>
+      <q-input
+        v-model="state.filter"
+        borderless
+        debounce="300"
+        class="page-filter"
+        placeholder="Filter keys"
+      >
+        <template #append>
+          <q-icon name="sym_s_search" />
+        </template>
+      </q-input>
+    </header>
 
-        <q-card-actions align="right" class="bg-primary">
-          <q-btn
-            size="md"
-            padding="sm lg"
-            unelevated
-            color="primary"
-            :disable="!!state.jsonError"
-            @click="createApiKey"
-            >Create API Key</q-btn
-          >
-        </q-card-actions>
-      </q-card>
-    </q-expansion-item>
+    <section class="composer">
+      <q-expansion-item
+        v-model="state.expanded"
+        expand-separator
+        icon="sym_s_add_circle"
+        expand-icon="sym_s_unfold_more"
+        expanded-icon="sym_s_unfold_less"
+        label="New API key"
+      >
+        <div class="column" style="height: 60vh">
+          <div class="row q-gutter-sm q-py-md">
+            <q-btn flat no-caps @click="loadAdminKey">Admin example</q-btn>
+            <q-btn flat no-caps @click="loadSearchKey">Search example</q-btn>
+            <q-btn
+              type="a"
+              no-caps
+              flat
+              dense
+              :href="`https://typesense.org/docs/${store.data.debug.version || store.data.defaultDocVersion}/api/api-keys.html#create-an-api-key`"
+              target="_blank"
+              >Key documentation</q-btn
+            >
+          </div>
+          <monaco-editor v-model="keyJson"></monaco-editor>
+          <q-banner v-if="state.jsonError" inline-actions>
+            This JSON is invalid: {{ state.jsonError }}
+          </q-banner>
+          <div class="row justify-end q-py-md">
+            <q-btn unelevated color="primary" :disable="!!state.jsonError" @click="createApiKey">
+              Create API key
+            </q-btn>
+          </div>
+        </div>
+      </q-expansion-item>
+    </section>
 
-    <q-table
-      class="q-mt-md"
-      title="API Keys"
-      flat
-      bordered
-      :filter="state.filter"
-      :rows="store.data.apiKeys"
-      :columns="state.columns"
-      row-key="id"
-      :visible-columns="[
-        'id',
-        'value_prefix',
-        'description',
-        'actions',
-        'collections',
-        'expires_at',
-        'actions_op',
-      ]"
-    >
-      <template #top-left>
-        <div class="text-h6"><q-icon size="md" name="sym_s_key" /> API Keys</div>
-      </template>
-      <template #top-right>
-        <q-input v-model="state.filter" borderless dense debounce="300" placeholder="Search">
-          <template #append>
-            <q-icon name="sym_s_search" />
-          </template>
-        </q-input>
-      </template>
-      <template #body-cell-actions_op="props">
-        <q-td class="text-right">
-          <q-btn
-            flat
-            color="negative"
-            icon="sym_s_delete_forever"
-            title="Delete"
-            @click="deleteApiKey(props.row.id)"
-          ></q-btn>
-        </q-td>
-      </template>
-    </q-table>
+    <section class="page-section">
+      <q-table
+        :filter="state.filter"
+        :rows="store.data.apiKeys"
+        :columns="state.columns"
+        row-key="id"
+        :visible-columns="[
+          'id',
+          'value_prefix',
+          'description',
+          'actions',
+          'collections',
+          'expires_at',
+          'actions_op',
+        ]"
+      >
+        <template #body-cell-actions_op="props">
+          <q-td class="text-right">
+            <q-btn
+              flat
+              color="negative"
+              icon="sym_s_delete_forever"
+              title="Delete API key"
+              @click="deleteApiKey(props.row.id)"
+            ></q-btn>
+          </q-td>
+        </template>
+      </q-table>
+    </section>
   </q-page>
 </template>
 
@@ -124,7 +122,7 @@ const state = reactive({
       sortable: true,
     },
     {
-      label: 'Key prefix',
+      label: 'Prefix',
       name: 'value_prefix',
       field: 'value_prefix',
     },
@@ -136,7 +134,7 @@ const state = reactive({
       align: 'left',
     },
     {
-      label: 'Key Actions',
+      label: 'Permissions',
       name: 'actions',
       field: (row: KeyCreateSchema) => JSON.stringify(row.actions),
       sortable: true,
@@ -150,7 +148,7 @@ const state = reactive({
       align: 'left',
     },
     {
-      label: 'Expires at',
+      label: 'Expires',
       name: 'expires_at',
       field: (row: KeyCreateSchema) =>
         row.expires_at
@@ -160,7 +158,7 @@ const state = reactive({
           : '',
     },
     {
-      label: 'Actions',
+      label: '',
       name: 'actions_op',
       align: 'right',
     },
@@ -190,18 +188,20 @@ function loadSearchKey() {
 async function createApiKey() {
   const key = await store.createApiKey(JSON.parse(JSON.stringify(state.key)));
   $q.dialog({
-    title: 'Your API key',
-    message: `This is your API key copy it! It will not be displayed again!\n\n${key.value || ''}`,
+    title: 'Copy this API key now',
+    message: `Typesense will not show the full value again.\n\n${key.value || ''}`,
     cancel: false,
     persistent: true,
+    ok: { unelevated: true, label: 'I have copied it', color: 'primary' },
   });
 }
 
 function deleteApiKey(id: string) {
   $q.dialog({
-    title: 'Confirm',
-    message: `Delete key with id: ${id}?`,
-    cancel: true,
+    title: `Delete API key ${id}?`,
+    message: 'Clients using this key will lose access immediately.',
+    cancel: { flat: true, label: 'Keep key', color: 'primary' },
+    ok: { unelevated: true, label: 'Delete key', color: 'negative' },
     persistent: true,
   }).onOk(() => {
     void store.deleteApiKey(id);

@@ -166,20 +166,10 @@ quasar dev
 quasar dev -m electron --devtools
 ```
 
-### Lint the files
-
-```bash
-yarn lint
-# or
-npm run lint
-```
-
 ### Format the files
 
 ```bash
-yarn format
-# or
-npm run format
+bun run format
 ```
 
 ### Build the app for production

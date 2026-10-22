@@ -5,13 +5,55 @@
   </div>
 </template>
 <script lang="ts">
-import * as monaco from 'monaco-editor';
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
+import 'monaco-editor/esm/vs/editor/standalone/browser/standalone-tokens.css';
+import 'monaco-editor/esm/vs/language/json/monaco.contribution';
+import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
+import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
+import { Dark } from 'quasar';
 import { defineComponent, onMounted, onUnmounted, ref, watch } from 'vue';
 
-import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
+const INK = '#12100e';
+const PAPER = '#e6e2d6';
+
+monaco.editor.defineTheme('basestation-ink', {
+  base: 'vs-dark',
+  inherit: true,
+  rules: [],
+  colors: {
+    'editor.background': INK,
+    'editor.foreground': PAPER,
+    'editor.lineHighlightBackground': '#1c1916',
+    'editorLineNumber.foreground': '#e6e2d6cc',
+    'editorCursor.foreground': PAPER,
+    'editor.selectionBackground': '#e6e2d633',
+    'editorWidget.background': INK,
+    'editorWidget.foreground': PAPER,
+  },
+});
+
+monaco.editor.defineTheme('basestation-paper', {
+  base: 'vs',
+  inherit: true,
+  rules: [],
+  colors: {
+    'editor.background': PAPER,
+    'editor.foreground': INK,
+    'editor.lineHighlightBackground': '#ddd8c8',
+    'editorLineNumber.foreground': '#12100ecc',
+    'editorCursor.foreground': INK,
+    'editor.selectionBackground': '#12100e22',
+    'editorWidget.background': PAPER,
+    'editorWidget.foreground': INK,
+  },
+});
+
 self.MonacoEnvironment = {
-  getWorker() {
-    return new jsonWorker();
+  getWorker(_workerId: string, label: string) {
+    if (label === 'json') {
+      return new jsonWorker();
+    }
+    return new editorWorker();
   },
 };
 
@@ -41,7 +83,9 @@ export default defineComponent({
           {
             value: props.modelValue,
             language: 'json',
-            theme: 'vs-dark',
+            theme: Dark.isActive ? 'basestation-ink' : 'basestation-paper',
+            fontFamily: "'IBM Plex Mono', ui-monospace, monospace",
+            fontSize: 16,
             minimap: {
               enabled: false,
             },
@@ -66,6 +110,12 @@ export default defineComponent({
         }
       },
     );
+    watch(
+      () => Dark.isActive,
+      (isDark) => {
+        monaco.editor.setTheme(isDark ? 'basestation-ink' : 'basestation-paper');
+      },
+    );
     return {
       editorElement,
       editorWrapper,
@@ -85,6 +135,6 @@ export default defineComponent({
 
 <style scoped>
 .editorWrapper {
-  background-color: #1e1e1e;
+  background-color: var(--bs-bg);
 }
 </style>

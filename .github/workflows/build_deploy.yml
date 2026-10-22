@@ -20,6 +20,8 @@ jobs:
       - run: npm install
       - run: npm install -g @quasar/cli
       - run: quasar build
+        env:
+          PUBLIC_PATH: /typesense-dashboard
 
       - name: deploy
         uses: peaceiris/actions-gh-pages@v4

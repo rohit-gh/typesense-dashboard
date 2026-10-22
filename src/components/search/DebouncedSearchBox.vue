@@ -7,7 +7,7 @@
     type="search"
     clearable
     clear-icon="close"
-    placeholder="Search..."
+    placeholder="Search documents"
     @clear="clear"
   >
     <template #prepend>
@@ -18,7 +18,7 @@
 
 <script lang="ts">
 import { connectSearchBox } from 'instantsearch.js/es/connectors';
-import { createWidgetMixin } from 'vue-instantsearch/vue3/es';
+import { createWidgetMixin } from 'vue-instantsearch/vue3/es/src/mixins/widget.js';
 
 export default {
   mixins: [createWidgetMixin({ connector: connectSearchBox })],
