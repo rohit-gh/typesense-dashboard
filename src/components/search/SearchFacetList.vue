@@ -1,10 +1,11 @@
 <template>
-  <div class="facet-field">
-    <div class="text-subtitle2">{{ attribute }}</div>
+  <fieldset class="facet-field">
+    <legend class="field-label">{{ attribute }}</legend>
     <ais-refinement-list
       class="facet-list"
       :attribute="attribute"
       :searchable="searchable"
+      searchable-placeholder="Filter values"
       :show-more="true"
       :limit="10"
       :show-more-limit="40"
@@ -29,7 +30,7 @@
         </label>
       </template>
     </ais-refinement-list>
-  </div>
+  </fieldset>
 </template>
 
 <script setup lang="ts">

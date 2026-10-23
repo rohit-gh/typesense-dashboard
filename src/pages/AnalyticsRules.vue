@@ -81,13 +81,13 @@
             </div>
           </q-tab-panel>
           <q-tab-panel name="json" class="q-pa-none">
-            <monaco-editor v-model="ruleJson" style="height: 60vh"></monaco-editor>
+            <monaco-editor v-model="ruleJson" class="editor-pane"></monaco-editor>
             <q-banner v-if="jsonError" inline-actions>
               This JSON is invalid: {{ jsonError }}
             </q-banner>
           </q-tab-panel>
         </q-tab-panels>
-        <div class="row justify-end q-py-md">
+        <div class="form-actions form-actions--end q-py-md">
           <q-btn unelevated color="primary" @click="createRule()">
             {{ isUpdate ? 'Update rule' : 'Add rule' }}
           </q-btn>
@@ -101,6 +101,7 @@
         :rows="store.data.analyticsRules"
         :columns="state.columns"
         row-key="name"
+        :visible-columns="visibleColumns"
         :pagination="{ rowsPerPage: 50, sortBy: 'name' }"
       >
         <template #body-cell-actions="props">
@@ -127,9 +128,14 @@ import { computed, onMounted, reactive, ref } from 'vue';
 import type { QTableProps } from 'quasar';
 import { useQuasar } from 'quasar';
 import MonacoEditor from 'src/components/MonacoEditor.vue';
+import { useVisibleColumns } from '../composables/useVisibleColumns';
 
 const $q = useQuasar();
 const store = useNodeStore();
+const visibleColumns = useVisibleColumns(
+  ['name', 'type', 'source', 'destination', 'limit', 'actions'],
+  ['name', 'type', 'actions'],
+);
 
 function initialData(): AnalyticsRuleSchema {
   return {

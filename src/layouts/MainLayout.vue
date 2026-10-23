@@ -15,8 +15,15 @@
           <span class="logo">Typesense.</span>
         </q-toolbar-title>
 
-        <q-btn padding="xs md" flat dense no-caps class="host-label">
-          {{ store.loginData?.node.host }}
+        <q-btn
+          padding="xs sm"
+          flat
+          dense
+          no-caps
+          class="host-label"
+          :title="store.loginData?.node.host"
+        >
+          <span class="host-text">{{ store.loginData?.node.host }}</span>
           <q-icon right name="sym_s_switch_account" />
           <q-menu>
             <server-history :show-logout="true"></server-history>
@@ -53,10 +60,19 @@
 import NavMenu from 'components/NavMenu.vue';
 import ServerHistory from 'components/ServerHistory.vue';
 import { useNodeStore } from 'src/stores/node';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
 
 const store = useNodeStore();
+const route = useRoute();
 const leftDrawerOpen = ref(false);
+
+watch(
+  () => route.fullPath,
+  () => {
+    leftDrawerOpen.value = false;
+  },
+);
 
 function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value;

@@ -27,13 +27,13 @@
         expanded-icon="sym_s_unfold_less"
         :label="isUpdate ? 'Update curation' : 'New curation'"
       >
-        <div class="column" style="height: 60vh">
+        <div class="composer-editor">
           <q-input v-model="state.id" borderless label="ID" class="q-py-md" />
-          <monaco-editor v-model="overrideJson"></monaco-editor>
+          <monaco-editor v-model="overrideJson" class="editor-pane"></monaco-editor>
           <q-banner v-if="state.jsonError" inline-actions>
             This JSON is invalid: {{ state.jsonError }}
           </q-banner>
-          <div class="row justify-end q-py-md">
+          <div class="form-actions form-actions--end q-py-md">
             <q-btn unelevated color="primary" :disable="!isValid" @click="createOverride()">{{
               isUpdate ? 'Update curation' : 'Add curation'
             }}</q-btn>
@@ -48,7 +48,7 @@
         :rows="store.data.overrides"
         :columns="state.columns"
         row-key="id"
-        :visible-columns="['query', 'match', 'includes', 'excludes', 'actions']"
+        :visible-columns="visibleColumns"
       >
         <template #body-cell-actions="props">
           <q-td class="text-right">
@@ -75,6 +75,7 @@
 <script setup lang="ts">
 import { computed, reactive } from 'vue';
 import { useQuasar } from 'quasar';
+import { useVisibleColumns } from '../composables/useVisibleColumns';
 import { nanoid } from 'nanoid';
 import MonacoEditor from 'src/components/MonacoEditor.vue';
 import { useNodeStore } from 'src/stores/node';
@@ -84,6 +85,10 @@ import type { QTableProps } from 'quasar';
 
 const $q = useQuasar();
 const store = useNodeStore();
+const visibleColumns = useVisibleColumns(
+  ['query', 'match', 'includes', 'excludes', 'actions'],
+  ['query', 'match', 'actions'],
+);
 
 const initialData: OverrideCreateSchema = {
   rule: {

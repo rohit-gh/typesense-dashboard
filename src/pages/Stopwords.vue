@@ -69,7 +69,7 @@
         <q-banner v-if="state.jsonError" inline-actions>
           This JSON is invalid: {{ state.jsonError }}
         </q-banner>
-        <div class="row justify-end q-py-md">
+        <div class="form-actions form-actions--end q-py-md">
           <q-btn
             unelevated
             color="primary"
@@ -88,6 +88,7 @@
         :rows="store.data.stopwords"
         :columns="state.columns"
         row-key="id"
+        :visible-columns="visibleColumns"
       >
         <template #body-cell-stopwords="props">
           <q-td>
@@ -122,11 +123,16 @@
 import { useNodeStore } from 'src/stores/node';
 import { computed, onMounted, reactive } from 'vue';
 import { useQuasar } from 'quasar';
+import { useVisibleColumns } from '../composables/useVisibleColumns';
 import type { StopwordSchema } from 'typesense/lib/Typesense/Stopword';
 import type { QTableProps } from 'quasar';
 
 const $q = useQuasar();
 const store = useNodeStore();
+const visibleColumns = useVisibleColumns(
+  ['id', 'locale', 'stopwords', 'actions_op'],
+  ['id', 'stopwords', 'actions_op'],
+);
 
 const state = reactive({
   jsonError: null as string | null,

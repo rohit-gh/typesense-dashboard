@@ -69,7 +69,7 @@
             label="Locale"
             hint="Leave blank to auto-detect"
           />
-          <div class="row justify-end">
+          <div class="form-actions form-actions--end">
             <q-btn unelevated color="primary" :disable="!isValid" @click="createSynonym()">{{
               isUpdate ? 'Update synonym' : 'Add synonym'
             }}</q-btn>
@@ -84,6 +84,7 @@
         :rows="store.data.synonyms"
         :columns="state.columns"
         row-key="id"
+        :visible-columns="visibleColumns"
         :pagination="{ rowsPerPage: 50, sortBy: 'name' }"
       >
         <template #body-cell-actions="props">
@@ -112,6 +113,7 @@
 import { useNodeStore } from 'src/stores/node';
 import { computed, reactive } from 'vue';
 import { useQuasar } from 'quasar';
+import { useVisibleColumns } from '../composables/useVisibleColumns';
 import { nanoid } from 'nanoid';
 import type { SynonymCreateSchema } from 'typesense/lib/Typesense/Synonyms';
 import type { SynonymSchema } from 'typesense/lib/Typesense/Synonym';
@@ -119,6 +121,10 @@ import type { QTableProps } from 'quasar';
 
 const $q = useQuasar();
 const store = useNodeStore();
+const visibleColumns = useVisibleColumns(
+  ['id', 'type', 'root', 'synonyms', 'symbols_to_index', 'locale', 'actions'],
+  ['id', 'synonyms', 'actions'],
+);
 
 enum RootTypes {
   ONE_WAY = 'one-way',

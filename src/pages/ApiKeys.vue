@@ -27,8 +27,8 @@
         expanded-icon="sym_s_unfold_less"
         label="New API key"
       >
-        <div class="column" style="height: 60vh">
-          <div class="row q-gutter-sm q-py-md">
+        <div class="composer-editor">
+          <div class="form-actions q-py-md">
             <q-btn flat no-caps @click="loadAdminKey">Admin example</q-btn>
             <q-btn flat no-caps @click="loadSearchKey">Search example</q-btn>
             <q-btn
@@ -41,11 +41,11 @@
               >Key documentation</q-btn
             >
           </div>
-          <monaco-editor v-model="keyJson"></monaco-editor>
+          <monaco-editor v-model="keyJson" class="editor-pane"></monaco-editor>
           <q-banner v-if="state.jsonError" inline-actions>
             This JSON is invalid: {{ state.jsonError }}
           </q-banner>
-          <div class="row justify-end q-py-md">
+          <div class="form-actions form-actions--end q-py-md">
             <q-btn unelevated color="primary" :disable="!!state.jsonError" @click="createApiKey">
               Create API key
             </q-btn>
@@ -60,15 +60,7 @@
         :rows="store.data.apiKeys"
         :columns="state.columns"
         row-key="id"
-        :visible-columns="[
-          'id',
-          'value_prefix',
-          'description',
-          'actions',
-          'collections',
-          'expires_at',
-          'actions_op',
-        ]"
+        :visible-columns="visibleColumns"
       >
         <template #body-cell-actions_op="props">
           <q-td class="text-right">
@@ -90,12 +82,17 @@
 import { computed, reactive } from 'vue';
 import { useQuasar } from 'quasar';
 import { useNodeStore } from 'src/stores/node';
+import { useVisibleColumns } from '../composables/useVisibleColumns';
 import MonacoEditor from '../components/MonacoEditor.vue';
 import type { KeyCreateSchema } from 'typesense/lib/Typesense/Key';
 import type { QTableProps } from 'quasar';
 
 const $q = useQuasar();
 const store = useNodeStore();
+const visibleColumns = useVisibleColumns(
+  ['id', 'value_prefix', 'description', 'actions', 'collections', 'expires_at', 'actions_op'],
+  ['description', 'actions_op'],
+);
 
 const adminKeyExample: KeyCreateSchema = {
   description: 'Admin key.',

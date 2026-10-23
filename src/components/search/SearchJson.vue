@@ -1,35 +1,30 @@
 <template>
-  <div class="row">
-    <div class="col-9">
-      <monaco-editor
-        v-model="searchParametersJson"
-        style="height: 30vh; min-height: 200px"
-      ></monaco-editor>
+  <div class="search-json-composer">
+    <div class="search-json-editor">
+      <monaco-editor v-model="searchParametersJson"></monaco-editor>
     </div>
-    <div class="col-3">
-      <q-scroll-area style="height: 100%">
-        <q-list bordered separator dense>
-          <q-item-label header>Recent queries</q-item-label>
-          <q-item
-            v-for="h in history"
-            :key="h"
-            v-ripple
-            clickable
-            :title="h"
-            @click="searchParametersJson = h"
-          >
-            <q-item-section>
-              {{ h.slice(0, 60) }}
-            </q-item-section>
-          </q-item>
-        </q-list>
-      </q-scroll-area>
-    </div>
+    <aside class="search-json-history" aria-label="Recent queries">
+      <q-list separator dense>
+        <q-item-label header>Recent queries</q-item-label>
+        <q-item
+          v-for="h in history"
+          :key="h"
+          v-ripple
+          clickable
+          :title="h"
+          @click="searchParametersJson = h"
+        >
+          <q-item-section>
+            {{ h.slice(0, 60) }}
+          </q-item-section>
+        </q-item>
+      </q-list>
+    </aside>
   </div>
   <q-banner v-if="jsonError" inline-actions class="text-white bg-red">
     Invalid Format: {{ jsonError }}
   </q-banner>
-  <div class="q-mt-md">
+  <div class="search-json-actions">
     <q-btn
       size="md"
       padding="sm lg"
@@ -44,7 +39,6 @@
       padding="sm lg"
       unelevated
       color="accent"
-      class="q-ml-sm"
       :disable="!results || !results.hits"
       @click="exportHits()"
       >Export hits</q-btn
@@ -54,7 +48,6 @@
       padding="sm lg"
       unelevated
       color="accent"
-      class="q-ml-sm"
       :disable="!results"
       @click="exportResults()"
       >Export raw results</q-btn

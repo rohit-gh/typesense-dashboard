@@ -40,7 +40,7 @@
             borderless
             :options="collectionNames"
           />
-          <div class="row justify-end">
+          <div class="form-actions form-actions--end">
             <q-btn unelevated color="primary" @click="createAlias()">
               {{ isUpdate ? 'Update alias' : 'Add alias' }}
             </q-btn>
@@ -55,7 +55,7 @@
         :rows="store.data.aliases"
         :columns="state.columns"
         row-key="name"
-        :visible-columns="['name', 'collection_name', 'actions']"
+        :visible-columns="visibleColumns"
         :pagination="{ rowsPerPage: 50, sortBy: 'name' }"
       >
         <template #body-cell-actions="props">
@@ -79,12 +79,16 @@
 import { computed, reactive } from 'vue';
 import { useNodeStore } from 'src/stores/node';
 import { useQuasar } from 'quasar';
+import { useVisibleColumns } from '../composables/useVisibleColumns';
 import type { CollectionAliasSchema } from 'typesense/lib/Typesense/Aliases';
 import type { QTableProps } from 'quasar';
 
 const $q = useQuasar();
-
 const store = useNodeStore();
+const visibleColumns = useVisibleColumns(
+  ['name', 'collection_name', 'actions'],
+  ['name', 'collection_name', 'actions'],
+);
 
 const state = reactive({
   alias: { name: '', collection_name: '' },

@@ -1,11 +1,7 @@
 <template>
-  <ais-instant-search
-    v-if="searchClient && currentCollection"
-    :search-client="searchClient"
-    :index-name="currentCollection.name"
-    :middlewares="middlewares"
-  >
-    <ais-configure :hits-per-page.camel="12" />
+  <ais-instant-search v-if="searchClient && currentCollection" :search-client="searchClient"
+    :index-name="currentCollection.name" :middlewares="middlewares">
+    <ais-configure :hits-per-page.camel="50" />
     <ais-search-box index-name="instant_search" :search-client="searchClient">
       <debounced-search-box />
     </ais-search-box>
@@ -13,57 +9,9 @@
     <ais-current-refinements />
 
     <div class="search-layout q-mt-md">
-      <aside class="search-facets" aria-label="Filters">
-        <div class="facet-toolbar">
-          <ais-hits-per-page
-            :items="[
-              { label: '12 per page', value: 12, default: true },
-              { label: '48 per page', value: 48 },
-              { label: '100 per page', value: 100 },
-              { label: '250 per page', value: 250 },
-            ]"
-          />
-          <q-btn flat no-caps dense class="facet-export" @click="exportPage()"
-            >Export this page</q-btn
-          >
-        </div>
-
-        <div class="facet-field">
-          <div class="text-subtitle2">Sort</div>
-          <ais-sort-by :items="sortBy" />
-        </div>
-
-        <div class="facet-field">
-          <div class="text-subtitle2">Stopwords</div>
-          <q-select
-            v-model="currentStopwordsSet"
-            :disable="!store.data.features.stopwords"
-            outlined
-            clearable
-            dense
-            options-dense
-            :options="stopwords"
-            @update:model-value="updateTypesenseAdapterConfiguration()"
-          ></q-select>
-        </div>
-
-        <div v-for="name in facetNumberFields" :key="name" class="facet-field">
-          <div class="text-subtitle2">{{ name }}</div>
-          <ais-range-input :attribute="name" />
-        </div>
-
-        <search-facet-list
-          v-for="name in facetStringFields"
-          :key="name"
-          :attribute="name"
-          searchable
-        />
-
-        <search-facet-list v-for="name in facetBooleanFields" :key="name" :attribute="name" />
-      </aside>
       <div class="search-hits">
         <div class="search-hits-bar">
-          <ais-pagination />
+          <ais-pagination :padding="paginationPadding" />
           <search-hits-layout-switch />
         </div>
         <ais-hits>
@@ -71,8 +19,59 @@
             <search-hits-results :items="items || []" @deleted="instantSearchInstance.refresh()" />
           </template>
         </ais-hits>
-        <ais-pagination class="q-my-md" />
+        <ais-pagination class="q-my-md" :padding="paginationPadding" />
       </div>
+
+      <component :is="isNarrow ? 'details' : 'div'" class="search-filters">
+        <summary v-if="isNarrow" class="search-filters-toggle">Filters</summary>
+        <aside class="search-facets" aria-label="Filters">
+          <div class="facet-group">
+            <div class="facet-field">
+              <label class="field-label" for="facet-per-page">Per page</label>
+              <ais-hits-per-page
+                id="facet-per-page"
+                :items="[
+                  { label: '50', value: 50, default: true },
+                  { label: '125', value: 125 },
+                  { label: '250', value: 250 },
+                ]"
+              />
+            </div>
+            <q-btn flat no-caps dense class="facet-export" @click="exportPage()">Export this page</q-btn>
+          </div>
+
+          <div class="facet-group">
+            <div class="facet-field">
+              <label class="field-label">Sort</label>
+              <ais-sort-by :items="sortBy" />
+            </div>
+            <div class="facet-field">
+              <label class="field-label">Stopwords</label>
+              <q-select
+                v-model="currentStopwordsSet"
+                :disable="!store.data.features.stopwords"
+                outlined
+                clearable
+                dense
+                options-dense
+                :options="stopwords"
+                @update:model-value="updateTypesenseAdapterConfiguration()"
+              />
+            </div>
+          </div>
+
+          <div class="facet-group">
+            <div v-for="name in facetNumberFields" :key="name" class="facet-field">
+              <label class="field-label">{{ name }}</label>
+              <ais-range-input :attribute="name" />
+            </div>
+
+            <search-facet-list v-for="name in facetStringFields" :key="name" :attribute="name" searchable />
+
+            <search-facet-list v-for="name in facetBooleanFields" :key="name" :attribute="name" />
+          </div>
+        </aside>
+      </component>
     </div>
   </ais-instant-search>
   <div v-else-if="searchClientError">
@@ -84,6 +83,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
+import { useNarrowViewport } from '../../composables/useNarrowViewport';
 import {
   AisConfigure,
   AisCurrentRefinements,
@@ -106,7 +106,9 @@ import TypesenseInstantSearchAdapter from 'typesense-instantsearch-adapter';
 import type { CollectionSchema } from 'typesense/lib/Typesense/Collection';
 
 const store = useNodeStore();
+const { isNarrow } = useNarrowViewport();
 const searchClient = ref<any>(null);
+const paginationPadding = computed(() => (isNarrow.value ? 1 : 3));
 const typesenseInstantsearchAdapter = ref<TypesenseInstantSearchAdapter>();
 const instantSearchInstance = ref<any>();
 const searchClientError = ref<string | null>(null);

@@ -29,6 +29,7 @@
         :columns="state.columns"
         :rows="store.data.collections"
         row-key="name"
+        :visible-columns="visibleColumns"
         :pagination="{ rowsPerPage: 0, sortBy: 'name' }"
       >
         <template #body="props">
@@ -101,9 +102,14 @@ import { onMounted, reactive } from 'vue';
 import { useQuasar } from 'quasar';
 import { useNodeStore } from 'src/stores/node';
 import CollectionCreate from 'src/components/collection/CollectionCreate.vue';
+import { useVisibleColumns } from '../composables/useVisibleColumns';
 
 const $q = useQuasar();
 const store = useNodeStore();
+const visibleColumns = useVisibleColumns(
+  ['name', 'actions', 'num_documents', 'schema_fields', 'created_at'],
+  ['name', 'num_documents', 'actions'],
+);
 
 const state = reactive({
   filter: '',

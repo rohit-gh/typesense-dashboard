@@ -5,7 +5,7 @@
       <q-tab name="json" label="JSON" />
     </q-tabs>
 
-    <q-tab-panels v-model="tab" animated :style="createMode ? 'height: 60vh' : ''">
+    <q-tab-panels v-model="tab" animated>
       <q-tab-panel name="form" class="q-px-none">
         <div class="row q-col-gutter-md">
           <q-input
@@ -62,8 +62,8 @@
               label="Locale"
             />
           </div>
-          <div class="row items-center justify-between">
-            <div>
+          <div class="field-row-actions">
+            <div class="field-flags">
               <q-checkbox v-model="field.optional" label="optional" />
               <q-checkbox v-model="field.facet" label="facet" />
               <q-checkbox v-model="field.index" label="index" />
@@ -77,14 +77,14 @@
       </q-tab-panel>
 
       <q-tab-panel name="json" class="q-pa-none">
-        <monaco-editor v-if="tab === 'json'" v-model="schemaJson" style="height: 60vh"></monaco-editor>
+        <monaco-editor v-if="tab === 'json'" v-model="schemaJson" class="editor-pane"></monaco-editor>
         <q-banner v-if="jsonError" inline-actions>
           This JSON is invalid: {{ jsonError }}
         </q-banner>
       </q-tab-panel>
     </q-tab-panels>
 
-    <div class="row justify-between q-py-md">
+    <div class="form-actions">
       <q-btn unelevated color="primary" @click="addField()">Add field</q-btn>
       <q-btn unelevated color="primary" @click="$emit('submit', schema)">{{
         primaryActionLabel

@@ -22,14 +22,14 @@
       This JSON is invalid: {{ state.jsonError }}
     </q-banner>
 
-    <div class="row items-end justify-between q-col-gutter-md q-my-md">
+    <div class="document-actions">
       <q-btn unelevated color="primary" @click="addEmptyDocument()">Add empty document</q-btn>
-      <div class="row col-auto items-end q-gutter-md">
+      <div class="document-import">
         <q-select
           v-model="state.action"
           borderless
+          class="document-mode"
           label="Import mode"
-          style="width: 18rem"
           :options="actionOptions"
           :hint="actionDescriptions[state.action]"
         />
