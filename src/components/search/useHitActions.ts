@@ -25,7 +25,15 @@ export function useHitActions(
     () => items().find((item) => documentId(item) === selectedId.value) || null,
   );
 
+  function close() {
+    selectedId.value = null;
+  }
+
   function select(id: string) {
+    if (selectedId.value === id) {
+      close();
+      return;
+    }
     selectedId.value = id;
     scroller.value?.focus({ preventScroll: true });
     void nextTick(() => {
@@ -64,7 +72,8 @@ export function useHitActions(
       event.preventDefault();
       editSelected();
     } else if (event.key === 'Escape') {
-      selectedId.value = null;
+      event.preventDefault();
+      close();
     }
   }
 
@@ -102,6 +111,7 @@ export function useHitActions(
   return {
     selectedId,
     select,
+    close,
     onKeydown,
     editSelected,
     deleteSelected,

@@ -40,6 +40,7 @@ import {
 export const appIcons: Record<string, string> = {
   search: symSharpSearch,
   close: symSharpClose,
+  sym_s_close: symSharpClose,
   sym_s_add_circle: symSharpAddCircle,
   sym_s_attach_file: symSharpAttachFile,
   sym_s_bug_report: symSharpBugReport,

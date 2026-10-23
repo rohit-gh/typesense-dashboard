@@ -1,9 +1,9 @@
 <template>
-  <div class="search-json-composer">
+  <div class="search-json-composer" :class="{ 'search-json-composer--solo': !history.length }">
     <div class="search-json-editor">
       <monaco-editor v-model="searchParametersJson"></monaco-editor>
     </div>
-    <aside class="search-json-history" aria-label="Recent queries">
+    <aside v-if="history.length" class="search-json-history" aria-label="Recent queries">
       <q-list separator dense>
         <q-item-label header>Recent queries</q-item-label>
         <q-item
@@ -21,48 +21,27 @@
       </q-list>
     </aside>
   </div>
-  <q-banner v-if="jsonError" inline-actions class="text-white bg-red">
-    Invalid Format: {{ jsonError }}
+  <q-banner v-if="parseError" inline-actions>
+    This JSON is invalid: {{ parseError }}
+  </q-banner>
+  <q-banner v-else-if="queryError" inline-actions>
+    {{ queryError }}
   </q-banner>
   <div class="search-json-actions">
-    <q-btn
-      size="md"
-      padding="sm lg"
-      unelevated
-      color="primary"
-      :disable="!!jsonError"
-      @click="search()"
-      >Run query</q-btn
+    <q-btn unelevated color="primary" no-caps :disable="!!parseError || searching" @click="search()"
+      >{{ searching ? 'Running query' : 'Run query' }}</q-btn
     >
-    <q-btn
-      size="md"
-      padding="sm lg"
-      unelevated
-      color="accent"
-      :disable="!results || !results.hits"
-      @click="exportHits()"
-      >Export hits</q-btn
-    >
-    <q-btn
-      size="md"
-      padding="sm lg"
-      unelevated
-      color="accent"
-      :disable="!results"
-      @click="exportResults()"
-      >Export raw results</q-btn
-    >
+    <q-btn flat no-caps :disable="!results || !results.hits" @click="exportHits()">Export hits</q-btn>
+    <q-btn flat no-caps :disable="!results" @click="exportResults()">Export raw results</q-btn>
   </div>
-  <div v-if="results && results.hits" class="search-hits-json">
+  <p v-if="searching" class="muted">Running query.</p>
+  <div v-else-if="results && results.hits" class="search-hits-json">
     <div class="search-hits-bar">
       <search-hits-layout-switch />
     </div>
     <search-hits-results :items="hits" @deleted="removeHit" />
   </div>
-  <pre v-if="results && !results.hits">
-          {{ resultsJson }}
-        </pre
-  >
+  <pre v-else-if="results && !results.hits" class="search-json-raw">{{ resultsJson }}</pre>
 </template>
 
 <script setup lang="ts">
@@ -73,22 +52,32 @@ import MonacoEditor from 'src/components/MonacoEditor.vue';
 import SearchHitsLayoutSwitch from './SearchHitsLayoutSwitch.vue';
 import SearchHitsResults from './SearchHitsResults.vue';
 import type { SearchParams } from 'typesense/lib/Typesense/Documents';
+import type { CollectionSchema } from 'typesense/lib/Typesense/Collection';
 
 const store = useNodeStore();
 const STORAGE_KEY_SEARCH_HISTORY = 'typesense-search-history';
 
+function defaultSearchParams(collection: CollectionSchema | null): SearchParams {
+  const query_by = (collection?.fields || [])
+    .filter((field) => field.index && ['string', 'string[]'].includes(field.type) && !field.name.includes('.*'))
+    .map((field) => field.name)
+    .join(',');
+
+  return {
+    q: '*',
+    ...(query_by ? { query_by } : {}),
+    page: 1,
+    per_page: 10,
+    exhaustive_search: true,
+  };
+}
+
 const history = ref<string[]>([]);
-const searchParameters = ref<SearchParams>({
-  q: 'stark',
-  query_by: 'company_name',
-  filter_by: 'num_employees:>100',
-  sort_by: 'num_employees:desc',
-  page: 1,
-  per_page: 10,
-  exhaustive_search: true,
-});
-const jsonError = ref<string | null>(null);
+const searchParameters = ref<SearchParams>(defaultSearchParams(store.currentCollection));
+const parseError = ref<string | null>(null);
+const queryError = ref<string | null>(null);
 const results = ref<any>(null);
+const searching = ref(false);
 
 const currentCollection = computed(() => store.currentCollection);
 
@@ -97,9 +86,9 @@ const searchParametersJson = computed({
   set: (json: string) => {
     try {
       searchParameters.value = JSON.parse(json);
-      jsonError.value = null;
+      parseError.value = null;
     } catch (e) {
-      jsonError.value = (e as Error).message;
+      parseError.value = (e as Error).message;
     }
   },
 });
@@ -164,13 +153,16 @@ const addToHistory = () => {
 };
 
 const search = async () => {
+  searching.value = true;
   results.value = null;
-  jsonError.value = null;
+  queryError.value = null;
   addToHistory();
   try {
     results.value = await store.search(searchParameters.value);
   } catch (error) {
-    jsonError.value = (error as Error).message;
+    queryError.value = (error as Error).message;
+  } finally {
+    searching.value = false;
   }
 };
 
@@ -180,5 +172,17 @@ const loadHistory = () => {
     [];
 };
 
-watch(currentCollection, loadHistory, { immediate: true });
+watch(
+  currentCollection,
+  (collection, previous) => {
+    loadHistory();
+    if (collection?.name !== previous?.name) {
+      searchParameters.value = defaultSearchParams(collection);
+      results.value = null;
+      parseError.value = null;
+      queryError.value = null;
+    }
+  },
+  { immediate: true },
+);
 </script>

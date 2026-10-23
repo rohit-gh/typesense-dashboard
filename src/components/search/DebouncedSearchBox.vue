@@ -1,6 +1,7 @@
 <template>
   <q-input
     v-model="query"
+    class="search-query"
     dense
     autofocus
     outlined
@@ -11,7 +12,7 @@
     @clear="clear"
   >
     <template #prepend>
-      <q-icon name="search" />
+      <q-icon name="sym_s_search" />
     </template>
   </q-input>
 </template>

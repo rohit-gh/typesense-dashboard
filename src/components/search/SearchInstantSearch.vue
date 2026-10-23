@@ -5,80 +5,116 @@
     <ais-search-box index-name="instant_search" :search-client="searchClient">
       <debounced-search-box />
     </ais-search-box>
-    <ais-stats></ais-stats>
+    <ais-stats>
+      <template #default="{ nbHits, hitsPerPage, processingTimeMS }">
+        <p class="ais-Stats-text">
+          <span class="metric">{{ Number(nbHits).toLocaleString() }}</span>
+          {{ Number(nbHits) === 1 ? 'result' : 'results' }}
+          found in
+          <span class="metric">{{ processingTimeMS }}</span>
+          ms across
+          <span class="metric">{{ resultPages(nbHits, hitsPerPage).toLocaleString() }}</span>
+          {{ resultPages(nbHits, hitsPerPage) === 1 ? 'page' : 'pages' }}
+        </p>
+      </template>
+    </ais-stats>
     <ais-current-refinements />
 
-    <div class="search-layout q-mt-md">
-      <div class="search-hits">
-        <div class="search-hits-bar">
-          <ais-pagination :padding="paginationPadding" />
-          <search-hits-layout-switch />
+    <div class="search-toolbar">
+      <div class="search-hits-tools">
+        <div class="search-tool search-tool--sort">
+          <label class="field-label" for="hits-sort">Sort</label>
+          <ais-sort-by :items="sortBy">
+            <template #default="{ items, currentRefinement, refine }">
+              <select
+                id="hits-sort"
+                class="ais-SortBy-select"
+                :value="currentRefinement"
+                @change="refine(selectValue($event))"
+              >
+                <option v-for="item in items" :key="item.value" :value="item.value">
+                  {{ item.label }}
+                </option>
+              </select>
+            </template>
+          </ais-sort-by>
         </div>
+        <div class="search-tool">
+          <label class="field-label" for="hits-per-page">Per page</label>
+          <ais-hits-per-page
+            :items="[
+              { label: '50', value: 50, default: true },
+              { label: '125', value: 125 },
+              { label: '250', value: 250 },
+            ]"
+          >
+            <template #default="{ items, refine }">
+              <select
+                id="hits-per-page"
+                class="ais-HitsPerPage-select"
+                @change="setHitsPerPage($event, refine)"
+              >
+                <option
+                  v-for="item in items"
+                  :key="item.value"
+                  :value="item.value"
+                  :selected="item.isRefined"
+                >
+                  {{ item.label }}
+                </option>
+              </select>
+            </template>
+          </ais-hits-per-page>
+        </div>
+        <div v-if="showStopwords" class="search-tool">
+          <label class="field-label" for="hits-stopwords">Stopwords</label>
+          <q-select
+            id="hits-stopwords"
+            v-model="currentStopwordsSet"
+            outlined
+            clearable
+            dense
+            options-dense
+            :options="stopwords"
+            @update:model-value="updateTypesenseAdapterConfiguration()"
+          />
+        </div>
+      </div>
+      <div class="search-hits-actions">
+        <q-btn flat no-caps @click="exportPage()">Export page</q-btn>
+        <search-hits-layout-switch />
+      </div>
+    </div>
+
+    <div class="search-layout" :class="{ 'search-layout--solo': !hasFacets }">
+      <div class="search-hits">
         <ais-hits>
           <template #default="{ items }">
             <search-hits-results :items="items || []" @deleted="instantSearchInstance.refresh()" />
           </template>
         </ais-hits>
-        <ais-pagination class="q-my-md" :padding="paginationPadding" />
+        <ais-pagination class="search-pagination" :padding="paginationPadding" />
       </div>
 
-      <component :is="isNarrow ? 'details' : 'div'" class="search-filters">
+      <component v-if="hasFacets" :is="isNarrow ? 'details' : 'div'" class="search-filters">
         <summary v-if="isNarrow" class="search-filters-toggle">Filters</summary>
         <aside class="search-facets" aria-label="Filters">
-          <div class="facet-group">
-            <div class="facet-field">
-              <label class="field-label" for="facet-per-page">Per page</label>
-              <ais-hits-per-page
-                id="facet-per-page"
-                :items="[
-                  { label: '50', value: 50, default: true },
-                  { label: '125', value: 125 },
-                  { label: '250', value: 250 },
-                ]"
-              />
-            </div>
-            <q-btn flat no-caps dense class="facet-export" @click="exportPage()">Export this page</q-btn>
+          <div v-for="name in facetNumberFields" :key="name" class="facet-field">
+            <label class="field-label">{{ name }}</label>
+            <ais-range-input :attribute="name" />
           </div>
 
-          <div class="facet-group">
-            <div class="facet-field">
-              <label class="field-label">Sort</label>
-              <ais-sort-by :items="sortBy" />
-            </div>
-            <div class="facet-field">
-              <label class="field-label">Stopwords</label>
-              <q-select
-                v-model="currentStopwordsSet"
-                :disable="!store.data.features.stopwords"
-                outlined
-                clearable
-                dense
-                options-dense
-                :options="stopwords"
-                @update:model-value="updateTypesenseAdapterConfiguration()"
-              />
-            </div>
-          </div>
+          <search-facet-list v-for="name in facetStringFields" :key="name" :attribute="name" searchable />
 
-          <div class="facet-group">
-            <div v-for="name in facetNumberFields" :key="name" class="facet-field">
-              <label class="field-label">{{ name }}</label>
-              <ais-range-input :attribute="name" />
-            </div>
-
-            <search-facet-list v-for="name in facetStringFields" :key="name" :attribute="name" searchable />
-
-            <search-facet-list v-for="name in facetBooleanFields" :key="name" :attribute="name" />
-          </div>
+          <search-facet-list v-for="name in facetBooleanFields" :key="name" :attribute="name" />
         </aside>
       </component>
     </div>
   </ais-instant-search>
-  <div v-else-if="searchClientError">
-    <q-banner inline-actions class="text-white bg-red">
-      {{ searchClientError }}
-    </q-banner>
-  </div>
+  <q-banner v-else-if="searchClientError" inline-actions>
+    {{ searchClientError }}
+  </q-banner>
+  <p v-else class="muted">Loading this collection.</p>
 </template>
 
 <script setup lang="ts">
@@ -108,6 +144,7 @@ import type { CollectionSchema } from 'typesense/lib/Typesense/Collection';
 const store = useNodeStore();
 const { isNarrow } = useNarrowViewport();
 const searchClient = ref<any>(null);
+const hitsPerPageSize = ref(50);
 const paginationPadding = computed(() => (isNarrow.value ? 1 : 3));
 const typesenseInstantsearchAdapter = ref<TypesenseInstantSearchAdapter>();
 const instantSearchInstance = ref<any>();
@@ -180,6 +217,32 @@ const stopwords = computed(() => {
   return store.data.stopwords.map((set) => set.id);
 });
 
+const showStopwords = computed(
+  () => Boolean(store.data.features.stopwords) && stopwords.value.length > 0,
+);
+
+const hasFacets = computed(
+  () =>
+    facetNumberFields.value.length +
+      facetStringFields.value.length +
+      facetBooleanFields.value.length >
+    0,
+);
+
+const selectValue = (event: Event) => (event.target as HTMLSelectElement).value;
+
+const resultPages = (nbHits: number, hitsPerPage?: number) => {
+  const size = hitsPerPage || hitsPerPageSize.value || 50;
+  if (!nbHits) return 0;
+  return Math.ceil(nbHits / size);
+};
+
+const setHitsPerPage = (event: Event, refine: (value: number) => void) => {
+  const value = Number(selectValue(event));
+  hitsPerPageSize.value = value;
+  refine(value);
+};
+
 const exportPage = () => {
   if (instantSearchInstance.value && currentCollection.value) {
     store.exportToJson(
@@ -233,7 +296,7 @@ watch(
         typesenseInstantsearchAdapter.value = adapter;
         searchClient.value = adapter.searchClient;
       } catch (error) {
-        searchClientError.value = (error as Error).message + 'Using query_by: ' + query_by;
+        searchClientError.value = `${(error as Error).message} Using query_by: ${query_by || '(none)'}`;
         console.error(error);
       }
     });

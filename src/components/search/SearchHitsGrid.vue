@@ -17,12 +17,12 @@
           </dd>
         </div>
       </dl>
-      <div v-if="selectedId === documentId(item)" class="hits-ledger-actions-bar">
-        <q-btn unelevated color="primary" no-caps @click.stop="editSelected">Edit document</q-btn>
-        <q-btn flat no-caps class="hits-ledger-delete" @click.stop="deleteSelected"
-          >Delete document</q-btn
-        >
-      </div>
+      <search-hit-actions
+        v-if="selectedId === documentId(item)"
+        @edit="editSelected"
+        @delete="deleteSelected"
+        @close="close"
+      />
     </article>
   </div>
 </template>
@@ -32,6 +32,7 @@ import { computed, ref } from 'vue';
 import type { CollectionSchema } from 'typesense/lib/Typesense/Collection';
 import { useNodeStore } from '../../stores/node';
 import SearchHitCell from './SearchHitCell.vue';
+import SearchHitActions from './SearchHitActions.vue';
 import { useHitActions } from './useHitActions';
 import { documentId, hitColumns, type HitItem } from './hitValue';
 
@@ -42,7 +43,7 @@ const emit = defineEmits<(e: 'deleted', id: string) => void>();
 
 const store = useNodeStore();
 const scroller = ref<HTMLElement | null>(null);
-const { selectedId, select, onKeydown, editSelected, deleteSelected } = useHitActions(
+const { selectedId, select, close, onKeydown, editSelected, deleteSelected } = useHitActions(
   () => props.items,
   emit,
   scroller,
