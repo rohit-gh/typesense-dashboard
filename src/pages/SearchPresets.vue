@@ -28,32 +28,32 @@
         :label="isUpdate ? 'Update preset' : 'New preset'"
       >
         <div class="composer-editor">
-          <div class="row items-end q-col-gutter-md q-py-md">
+          <label class="field">
+            <span class="field-label">Name</span>
             <q-input
               v-model="state.preset.name"
-              class="col-12 col-sm-6"
-              label="Name"
               borderless
+              hide-bottom-space
               :rules="[(val) => !!val || 'Enter a preset name']"
             />
-            <q-btn
-              type="a"
-              no-caps
-              flat
-              dense
-              :href="`https://typesense.org/docs/${store.data.debug.version || store.data.defaultDocVersion}/api/search.html#presets`"
-              target="_blank"
-              >Preset documentation</q-btn
-            >
-          </div>
+          </label>
+          <q-btn
+            type="a"
+            no-caps
+            flat
+            :href="`https://typesense.org/docs/${store.data.debug.version || store.data.defaultDocVersion}/api/search.html#presets`"
+            target="_blank"
+            >Preset documentation</q-btn
+          >
           <monaco-editor v-model="keyJson" class="editor-pane"></monaco-editor>
           <q-banner v-if="state.jsonError" inline-actions>
             This JSON is invalid: {{ state.jsonError }}
           </q-banner>
-          <div class="form-actions form-actions--end q-py-md">
+          <div class="form-actions form-actions--end">
             <q-btn
               unelevated
               color="primary"
+              no-caps
               :disable="!!state.jsonError"
               @click="createSearchPreset()"
               >{{ isUpdate ? 'Update preset' : 'Add preset' }}</q-btn
@@ -70,22 +70,20 @@
         :columns="state.columns"
         row-key="id"
         :visible-columns="visibleColumns"
+        :rows-per-page-options="[50, 125, 250]"
+        :pagination="{ rowsPerPage: 50, sortBy: 'name' }"
       >
         <template #body-cell-actions_op="props">
-          <q-td class="text-right">
-            <q-btn
-              flat
-              icon="sym_s_edit"
-              title="Edit preset"
-              @click="editSearchPreset(props.row)"
-            ></q-btn>
-            <q-btn
-              flat
-              color="negative"
-              icon="sym_s_delete_forever"
-              title="Delete preset"
-              @click="deleteSearchPreset(props.row.name)"
-            ></q-btn>
+          <q-td>
+            <div class="table-actions">
+              <q-btn flat no-caps @click="editSearchPreset(props.row)">Edit</q-btn>
+              <q-btn
+                flat
+                no-caps
+                class="table-action-danger"
+                @click="deleteSearchPreset(props.row.name)"
+              >Delete</q-btn>
+            </div>
           </q-td>
         </template>
       </q-table>

@@ -31,53 +31,61 @@
           <q-tab name="form" label="Form" />
           <q-tab name="json" label="JSON" />
         </q-tabs>
-        <q-tab-panels v-model="tab" animated>
-          <q-tab-panel name="form" class="q-px-none">
-            <div class="row q-col-gutter-md">
-              <q-input
-                v-model="state.rule.name"
-                class="col-12 col-sm-6"
-                label="Rule name"
-                borderless
-                :rules="[(val) => !!val || 'Enter a rule name']"
-              />
-              <q-select
-                v-model="state.rule.type"
-                :options="typeOptions"
-                class="col-12 col-sm-6"
-                label="Rule type"
-                borderless
-                :rules="[(val) => !!val || 'Choose a rule type']"
-              />
-              <q-select
-                v-model="state.rule.params.source.collections"
-                class="col-12 col-sm-6"
-                label="Source collections"
-                borderless
-                :options="sourceOptions"
-                multiple
-                hint="Track searches sent to these collections or aliases"
-              />
-              <q-select
-                v-model="state.rule.params.destination.collection"
-                class="col-12 col-sm-6"
-                label="Destination collection"
-                borderless
-                :options="sourceOptions"
-              />
-              <q-input
-                v-model="state.rule.params.limit"
-                class="col-12 col-sm-6"
-                label="Limit"
-                borderless
-                type="number"
-                min="0"
-              />
-              <q-checkbox
-                v-model="state.rule.params.expand_query"
-                class="col-12 col-sm-6"
-                label="Expand query"
-              />
+        <q-tab-panels v-model="tab" keep-alive>
+          <q-tab-panel name="form" class="q-pa-none">
+            <div class="field-grid">
+              <label class="field">
+                <span class="field-label">Rule name</span>
+                <q-input
+                  v-model="state.rule.name"
+                  borderless
+                  hide-bottom-space
+                  :rules="[(val) => !!val || 'Enter a rule name']"
+                />
+              </label>
+              <label class="field">
+                <span class="field-label">Rule type</span>
+                <q-select
+                  v-model="state.rule.type"
+                  :options="typeOptions"
+                  borderless
+                  hide-bottom-space
+                  :rules="[(val) => !!val || 'Choose a rule type']"
+                />
+              </label>
+              <label class="field">
+                <span class="field-label">Source collections</span>
+                <q-select
+                  v-model="state.rule.params.source.collections"
+                  borderless
+                  hide-bottom-space
+                  :options="sourceOptions"
+                  multiple
+                />
+                <p class="field-hint">Track searches sent to these collections or aliases.</p>
+              </label>
+              <label class="field">
+                <span class="field-label">Destination collection</span>
+                <q-select
+                  v-model="state.rule.params.destination.collection"
+                  borderless
+                  hide-bottom-space
+                  :options="sourceOptions"
+                />
+              </label>
+              <label class="field">
+                <span class="field-label">Limit</span>
+                <q-input
+                  v-model="state.rule.params.limit"
+                  borderless
+                  hide-bottom-space
+                  type="number"
+                  min="0"
+                />
+              </label>
+              <div class="field">
+                <q-checkbox v-model="state.rule.params.expand_query" label="Expand query" />
+              </div>
             </div>
           </q-tab-panel>
           <q-tab-panel name="json" class="q-pa-none">
@@ -87,8 +95,8 @@
             </q-banner>
           </q-tab-panel>
         </q-tab-panels>
-        <div class="form-actions form-actions--end q-py-md">
-          <q-btn unelevated color="primary" @click="createRule()">
+        <div class="form-actions form-actions--end">
+          <q-btn unelevated color="primary" no-caps @click="createRule()">
             {{ isUpdate ? 'Update rule' : 'Add rule' }}
           </q-btn>
         </div>
@@ -102,18 +110,20 @@
         :columns="state.columns"
         row-key="name"
         :visible-columns="visibleColumns"
+        :rows-per-page-options="[50, 125, 250]"
         :pagination="{ rowsPerPage: 50, sortBy: 'name' }"
       >
         <template #body-cell-actions="props">
-          <q-td class="text-right">
-            <q-btn flat icon="sym_s_edit" title="Edit rule" @click="editRule(props.row)"></q-btn>
-            <q-btn
-              flat
-              color="negative"
-              icon="sym_s_delete_forever"
-              title="Delete rule"
-              @click="deleteRule(props.row.name)"
-            ></q-btn>
+          <q-td>
+            <div class="table-actions">
+              <q-btn flat no-caps @click="editRule(props.row)">Edit</q-btn>
+              <q-btn
+                flat
+                no-caps
+                class="table-action-danger"
+                @click="deleteRule(props.row.name)"
+              >Delete</q-btn>
+            </div>
           </q-td>
         </template>
       </q-table>

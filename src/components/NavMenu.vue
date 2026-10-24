@@ -67,18 +67,21 @@
 
       <q-item>
         <q-item-section>
-          <q-select
-            v-model="currentCollection"
-            borderless
-            :options="filteredCollections"
-            use-input
-            fill-input
-            hide-selected
-            input-debounce="0"
-            label="Choose a collection"
-            option-label="name"
-            @filter="collectionFilterFn"
-          />
+          <label class="field nav-collection">
+            <span class="field-label">Collection</span>
+            <q-select
+              v-model="currentCollection"
+              borderless
+              hide-bottom-space
+              :options="filteredCollections"
+              use-input
+              fill-input
+              hide-selected
+              input-debounce="0"
+              option-label="name"
+              @filter="collectionFilterFn"
+            />
+          </label>
         </q-item-section>
       </q-item>
 

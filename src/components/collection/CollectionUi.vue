@@ -5,62 +5,63 @@
       <q-tab name="json" label="JSON" />
     </q-tabs>
 
-    <q-tab-panels v-model="tab" animated>
-      <q-tab-panel name="form" class="q-px-none">
-        <div class="row q-col-gutter-md">
-          <q-input
-            v-model="schema.name"
-            class="col-12 col-sm-6"
-            borderless
-            label="Collection name"
-            placeholder="books"
-            :disable="!createMode"
-            :rules="[(val) => !!val || 'Enter a collection name']"
-          />
-          <q-select
-            v-model="schema.default_sorting_field"
-            borderless
-            class="col-12 col-sm-6"
-            :options="availableSortFields"
-            label="Default sort field"
-            hint="Optional. Must be int32, float, or a string marked sortable."
-          />
+    <q-tab-panels v-model="tab" keep-alive>
+      <q-tab-panel name="form" class="q-pa-none">
+        <div class="field-grid">
+          <label class="field">
+            <span class="field-label">Collection name</span>
+            <q-input
+              v-model="schema.name"
+              borderless
+              hide-bottom-space
+              placeholder="books"
+              :disable="!createMode"
+              :rules="[(val) => !!val || 'Enter a collection name']"
+            />
+          </label>
+          <label class="field">
+            <span class="field-label">Default sort field <span class="field-optional">(optional)</span></span>
+            <q-select
+              v-model="schema.default_sorting_field"
+              borderless
+              hide-bottom-space
+              :options="availableSortFields"
+            />
+            <p class="field-hint">Must be int32, float, or a string marked sortable.</p>
+          </label>
         </div>
 
-        <h3 class="page-section-title q-mt-lg">Fields</h3>
+        <h3 class="page-subhead">Fields</h3>
         <div v-for="(field, index) in schema.fields" :key="index" class="field-row">
-          <div class="row q-col-gutter-md">
-            <q-input
-              v-model="field.name"
-              class="col-12 col-sm-6"
-              borderless
-              label="Field name"
-              placeholder="title"
-              :rules="[(val) => !!val || 'Enter a field name']"
-            />
-            <q-select
-              v-model="field.type"
-              class="col-12 col-sm-4"
-              borderless
-              label="Type"
-              :options="types"
-              :rules="[(val) => !!val || 'Choose a type']"
-            />
-            <q-input
-              v-if="field.type === 'float[]'"
-              v-model.number="field.num_dim"
-              class="col-12 col-sm-2"
-              borderless
-              type="number"
-              label="Dimensions"
-            />
-            <q-input
-              v-if="field.type.startsWith('string')"
-              v-model="field.locale"
-              class="col-12 col-sm-2"
-              borderless
-              label="Locale"
-            />
+          <div class="field-grid">
+            <label class="field">
+              <span class="field-label">Field name</span>
+              <q-input
+                v-model="field.name"
+                borderless
+                hide-bottom-space
+                placeholder="title"
+                :rules="[(val) => !!val || 'Enter a field name']"
+              />
+            </label>
+            <label class="field">
+              <span class="field-label">Type</span>
+              <q-select
+                v-model="field.type"
+                borderless
+                hide-bottom-space
+                :options="types"
+                :rules="[(val) => !!val || 'Choose a type']"
+              />
+            </label>
+            <label v-if="field.type === 'float[]'" class="field">
+              <span class="field-label">Dimensions</span>
+              <q-input v-model.number="field.num_dim" borderless hide-bottom-space type="number" />
+            </label>
+            <label v-if="field.type.startsWith('string')" class="field">
+              <span class="field-label">Locale <span class="field-optional">(optional)</span></span>
+              <q-input v-model="field.locale" borderless hide-bottom-space />
+            </label>
           </div>
           <div class="field-row-actions">
             <div class="field-flags">
@@ -85,8 +86,8 @@
     </q-tab-panels>
 
     <div class="form-actions">
-      <q-btn unelevated color="primary" @click="addField()">Add field</q-btn>
-      <q-btn unelevated color="primary" @click="$emit('submit', schema)">{{
+      <q-btn flat no-caps @click="addField()">Add field</q-btn>
+      <q-btn unelevated color="primary" no-caps @click="$emit('submit', schema)">{{
         primaryActionLabel
       }}</q-btn>
     </div>

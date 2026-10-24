@@ -27,21 +27,27 @@
         expanded-icon="sym_s_unfold_less"
         :label="isUpdate ? 'Update alias' : 'New alias'"
       >
-        <div class="field-stack q-py-md">
-          <q-input
-            v-model="state.alias.name"
-            label="Alias name"
-            borderless
-            :rules="[(name) => !collectionNames.includes(name) || 'Choose a name that is not a collection']"
-          />
-          <q-select
-            v-model="state.alias.collection_name"
-            label="Target collection"
-            borderless
-            :options="collectionNames"
-          />
+        <div class="field-stack">
+          <label class="field">
+            <span class="field-label">Alias name</span>
+            <q-input
+              v-model="state.alias.name"
+              borderless
+              hide-bottom-space
+              :rules="[(name) => !collectionNames.includes(name) || 'Choose a name that is not a collection']"
+            />
+          </label>
+          <label class="field">
+            <span class="field-label">Target collection</span>
+            <q-select
+              v-model="state.alias.collection_name"
+              borderless
+              hide-bottom-space
+              :options="collectionNames"
+            />
+          </label>
           <div class="form-actions form-actions--end">
-            <q-btn unelevated color="primary" @click="createAlias()">
+            <q-btn unelevated color="primary" no-caps @click="createAlias()">
               {{ isUpdate ? 'Update alias' : 'Add alias' }}
             </q-btn>
           </div>
@@ -56,18 +62,20 @@
         :columns="state.columns"
         row-key="name"
         :visible-columns="visibleColumns"
+        :rows-per-page-options="[50, 125, 250]"
         :pagination="{ rowsPerPage: 50, sortBy: 'name' }"
       >
         <template #body-cell-actions="props">
-          <q-td class="text-right">
-            <q-btn flat icon="sym_s_edit" title="Edit alias" @click="editAlias(props.row)"></q-btn>
-            <q-btn
-              flat
-              color="negative"
-              icon="sym_s_delete_forever"
-              title="Delete alias"
-              @click="deleteAlias(props.row.name)"
-            ></q-btn>
+          <q-td>
+            <div class="table-actions">
+              <q-btn flat no-caps @click="editAlias(props.row)">Edit</q-btn>
+              <q-btn
+                flat
+                no-caps
+                class="table-action-danger"
+                @click="deleteAlias(props.row.name)"
+              >Delete</q-btn>
+            </div>
           </q-td>
         </template>
       </q-table>

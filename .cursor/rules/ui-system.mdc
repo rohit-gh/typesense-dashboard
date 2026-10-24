@@ -1,0 +1,91 @@
+---
+description: BaseStation UI system. Apply when changing pages, forms, tables, or controls. Benchmarks are Search and Status.
+globs: src/**/*.vue,src/css/**/*.scss
+alwaysApply: false
+---
+
+# UI system (Search + Status)
+
+Copy `src/pages/Search.vue`, `src/components/search/SearchInstantSearch.vue`, `src/pages/ServerStatus.vue`, and `src/pages/Login.vue`. Do not invent a third look.
+
+## Invert pair
+
+Dark default: background `--bs-ink` `#12100e`, text `--bs-paper` `#e6e2d6`. Light theme swaps the pair. Emphasis is the inverted pair (paper-on-ink / ink-on-paper). Never a new hue, gray, or purple.
+
+| Token | Use |
+| --- | --- |
+| `--bs-fg` / `--bs-bg` | text and field |
+| `--bs-muted` | labels, ledes, meta (fg at 0.8) |
+| `--bs-border` | hairlines (fg at 0.18) |
+| `--bs-fill` | wells and hover wash |
+| `--bs-danger` `#9a3b32` | delete / error only |
+| `--bs-success` `#4f6b45` | success only |
+| `--bs-warning` `#a67c2a` | warning only |
+
+Selection, focus, primary buttons, selected page, and active chips use the inverted pair. Radius is `0`. No shadows, glass, or cards-in-cards.
+
+## Type and hierarchy
+
+- `h1.page-title`: Source Serif 4, `2rem`, one per page
+- `h2.page-section-title`: `1.25rem`
+- `h3.page-subhead`: `1.125rem`, always larger than the copy under it
+- Body / lede / buttons: Open Sans, `1rem`. Ledes use `.page-lede` / `.page-copy` (muted)
+- Labels / meta: `.field-label`, Open Sans 600, `0.8125rem`, muted
+- IDs, hosts, metrics, table cells, JSON: IBM Plex Mono, `0.875rem`, `.metric` / `.mono`
+- No Source Serif on buttons, labels, or table cells. No kicker above a heading.
+
+## Spacing
+
+Scale: `0.35 / 0.7 / 1.25 / 2 / 2.5rem`. Related items stack at `0.7rem`. Groups at `2rem`. Sections at `2.5rem`. Page pad: `2.25rem 2.5rem 3rem` (mobile `1.5rem 1.25rem 2rem`). More space above a heading than below it.
+
+## Page chrome
+
+```html
+<q-page class="page">
+  <header class="page-head">
+    <div>
+      <h1 class="page-title">Aliases</h1>
+      <p class="page-lede">One sentence about the job.</p>
+    </div>
+    <!-- one filter well OR one primary action, not both -->
+  </header>
+  <section class="composer">...</section>
+  <section class="page-section">...</section>
+</q-page>
+```
+
+One H1. One primary action per screen. Secondary work is a composer (expansion) or a ghost button. Filter lives in the page head, never in a table top. Tabs: `dense align="left" narrow-indicator`, no animation.
+
+## Buttons
+
+| Kind | Markup | Look |
+| --- | --- | --- |
+| Primary | `q-btn unelevated color="primary" no-caps` | inverted fill, min-height `2.5rem`, padding `0 1.25rem` |
+| Ghost | `q-btn flat no-caps` | no fill; underline at `4px` on hover |
+| Danger ghost | `q-btn flat no-caps` + `.table-action-danger` | danger text, same underline |
+| Icon-only | layout switch, overflow, close only | `aria-label` required |
+
+Never two inverted fills on one screen. "Add field" is ghost; "Create collection" is primary. Hover is opacity `0.7` / `0.3s ease`. No all-caps, no round, no unelevated without `color="primary"` (except dialog danger confirm).
+
+## Fields
+
+Never `label=` or `stack-label` on `q-input` / `q-select`. Stack a muted label, then the well.
+
+```html
+<label class="field">
+  <span class="field-label">Threshold (ms)</span>
+  <q-input v-model="value" borderless hide-bottom-space />
+</label>
+```
+
+Well: `--bs-fill` + 1px `--bs-border`, min-height `2.5rem`, padding `0 0.75rem`. Focus border is `--bs-fg`. Placeholder is muted; value is full fg. Native `<select>` uses the same well (see Search Sort / Per page). Page-head filters use `.page-filter` with a placeholder, no floating label. Helper text is `.field-hint` or `hint=`, not a second label.
+
+## Tables and pagination
+
+Hairline rows, not outlined panels. Headers: Open Sans 600, `0.8125rem`, muted. Cells: mono `0.875rem`. Row actions are labeled ghost buttons in `.table-actions` (`Edit`, `Delete`), not icon-only. Overflow menus are allowed when a row has many actions (Collections).
+
+Pagination matches Search: mono page numbers, no boxes, selected page is inverted fill, hover underline. Default `50` rows. Use `:rows-per-page-options="[50, 125, 250]"` and `:pagination="{ rowsPerPage: 50 }"`. Do not restyle Quasar pagination into pills or outlined boxes.
+
+## Dialogs
+
+Title and confirm name the object and the verb (`Delete alias staging`, not `Confirm`). Cancel is ghost. Confirm is inverted, or `color="negative"` unelevated when destructive.

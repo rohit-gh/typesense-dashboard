@@ -27,52 +27,54 @@
         expanded-icon="sym_s_unfold_less"
         :label="isUpdate ? 'Update set' : 'New set'"
       >
-        <div class="row q-col-gutter-md q-py-md">
-          <q-input
-            v-model="state.stopwordsSet.id"
-            class="col-12 col-sm-6"
-            label="ID"
-            borderless
-            :rules="[(val) => !!val || 'Enter a set ID']"
-          />
-          <q-input
-            v-model="state.stopwordsSet.locale"
-            borderless
-            label="Locale"
-            class="col-12 col-sm-4"
-          />
+        <div class="field-stack">
+          <div class="field-grid">
+            <label class="field">
+              <span class="field-label">ID</span>
+              <q-input
+                v-model="state.stopwordsSet.id"
+                borderless
+                hide-bottom-space
+                :rules="[(val) => !!val || 'Enter a set ID']"
+              />
+            </label>
+            <label class="field">
+              <span class="field-label">Locale</span>
+              <q-input v-model="state.stopwordsSet.locale" borderless hide-bottom-space />
+            </label>
+          </div>
           <q-btn
             type="a"
             no-caps
             flat
-            dense
-            class="col-auto"
             :href="`https://typesense.org/docs/${store.data.debug.version || store.data.defaultDocVersion}/api/stopwords.html`"
             target="_blank"
           >
             Stopword documentation
           </q-btn>
-          <q-select
-            v-model="state.stopwordsSet.stopwords"
-            class="col-12"
-            borderless
-            multiple
-            use-chips
-            use-input
-            new-value-mode="add"
-            stack-label
-            hide-dropdown-icon
-            label="Stopwords"
-            hint="Type a word and press Enter"
-          />
+          <label class="field">
+            <span class="field-label">Stopwords</span>
+            <q-select
+              v-model="state.stopwordsSet.stopwords"
+              borderless
+              multiple
+              use-chips
+              use-input
+              new-value-mode="add"
+              hide-dropdown-icon
+              hide-bottom-space
+            />
+            <p class="field-hint">Type a word and press Enter.</p>
+          </label>
         </div>
         <q-banner v-if="state.jsonError" inline-actions>
           This JSON is invalid: {{ state.jsonError }}
         </q-banner>
-        <div class="form-actions form-actions--end q-py-md">
+        <div class="form-actions form-actions--end">
           <q-btn
             unelevated
             color="primary"
+            no-caps
             :disable="!!state.jsonError"
             @click="createStopwordsSet()"
             >{{ isUpdate ? 'Update set' : 'Add set' }}
@@ -89,6 +91,8 @@
         :columns="state.columns"
         row-key="id"
         :visible-columns="visibleColumns"
+        :rows-per-page-options="[50, 125, 250]"
+        :pagination="{ rowsPerPage: 50 }"
       >
         <template #body-cell-stopwords="props">
           <q-td>
@@ -98,20 +102,16 @@
           </q-td>
         </template>
         <template #body-cell-actions_op="props">
-          <q-td class="text-right text-no-wrap">
-            <q-btn
-              flat
-              icon="sym_s_edit"
-              title="Edit set"
-              @click="editStopwordsSet(props.row)"
-            ></q-btn>
-            <q-btn
-              flat
-              color="negative"
-              icon="sym_s_delete_forever"
-              title="Delete set"
-              @click="deleteStopwordsSet(props.row.id)"
-            ></q-btn>
+          <q-td>
+            <div class="table-actions">
+              <q-btn flat no-caps @click="editStopwordsSet(props.row)">Edit</q-btn>
+              <q-btn
+                flat
+                no-caps
+                class="table-action-danger"
+                @click="deleteStopwordsSet(props.row.id)"
+              >Delete</q-btn>
+            </div>
           </q-td>
         </template>
       </q-table>

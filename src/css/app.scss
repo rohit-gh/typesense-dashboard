@@ -168,7 +168,7 @@ a:hover {
 .document-import {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-end;
   gap: var(--bs-space-sm);
 }
 
@@ -229,6 +229,103 @@ a:hover {
 .page-filter {
   min-width: min(16rem, 100%);
   font-size: var(--bs-type-body);
+}
+
+.page-filter.q-field .q-field__control {
+  min-height: 2.5rem;
+  padding: 0 0.75rem;
+  background: var(--bs-fill) !important;
+  border: 1px solid var(--bs-border) !important;
+  border-radius: 0 !important;
+}
+
+.page-filter.q-field .q-field__control:before,
+.page-filter.q-field .q-field__control:after {
+  display: none !important;
+}
+
+.page-filter.q-field--focused .q-field__control,
+.page-filter.q-field--highlighted .q-field__control {
+  border-color: var(--bs-fg) !important;
+}
+
+.field-hint {
+  margin: 0;
+  color: var(--bs-muted);
+  font-size: var(--bs-type-label);
+  line-height: 1.4;
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--bs-space-md);
+}
+
+.q-tab-panel > .field-grid:first-child,
+.q-tab-panel > .field-stack:first-child {
+  padding-top: var(--bs-space-md);
+}
+
+.field-grid + .page-subhead,
+.field-stack > .page-subhead {
+  margin-top: var(--bs-space-lg);
+}
+
+.page-subhead + .field-row {
+  margin-top: var(--bs-space-sm);
+}
+
+.q-tab-panels + .form-actions {
+  margin-top: var(--bs-space-md);
+}
+
+.form-actions .q-btn--flat:hover,
+.form-actions .q-btn--flat:focus-visible,
+.document-actions .q-btn--flat:hover,
+.document-actions .q-btn--flat:focus-visible,
+.search-hits-actions .q-btn--flat:hover,
+.search-hits-actions .q-btn--flat:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.composer .field-stack,
+.composer .composer-editor {
+  padding: var(--bs-space-md) 0;
+}
+
+.composer .q-tab-panels + .form-actions,
+.composer .field-grid + .form-actions {
+  padding-bottom: var(--bs-space-md);
+}
+
+.nav-collection {
+  width: 100%;
+}
+
+.table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--bs-space-xs);
+}
+
+.table-actions .q-btn {
+  min-height: 2rem;
+  padding: 0 0.7rem;
+  font-size: var(--bs-type-label);
+}
+
+.table-actions .q-btn--flat:hover,
+.table-actions .q-btn--flat:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.table-action-danger {
+  color: var(--bs-danger) !important;
 }
 
 .page-section {
@@ -648,8 +745,9 @@ a:hover {
 
 .q-table th {
   font-family: var(--bs-text);
-  font-weight: 500;
-  font-size: var(--bs-type-data);
+  font-weight: 600;
+  font-size: var(--bs-type-label);
+  color: var(--bs-muted);
 }
 
 .q-table tbody td {
@@ -658,6 +756,77 @@ a:hover {
 
 .q-table__top {
   padding: 0 0 var(--bs-space-sm);
+}
+
+.q-table__bottom {
+  padding: var(--bs-space-md) 0 0;
+  border-top: 1px solid var(--bs-border);
+  font-family: var(--bs-text);
+  font-size: var(--bs-type-label);
+  color: var(--bs-muted);
+}
+
+.q-table__bottom .q-table__separator {
+  display: none;
+}
+
+.q-table__bottom .q-field__control {
+  min-height: 2.5rem;
+  padding: 0 0.75rem;
+  background: var(--bs-fill) !important;
+  border: 1px solid var(--bs-border) !important;
+  border-radius: 0 !important;
+}
+
+.q-table__bottom .q-field__control:before,
+.q-table__bottom .q-field__control:after {
+  display: none !important;
+}
+
+.q-table__bottom .q-field--focused .q-field__control,
+.q-table__bottom .q-field--highlighted .q-field__control {
+  border-color: var(--bs-fg) !important;
+}
+
+.q-pagination {
+  font-family: var(--bs-mono);
+}
+
+.q-pagination .q-btn {
+  min-width: 2rem;
+  min-height: 2rem;
+  padding: 0.2rem 0.45rem;
+  background: transparent !important;
+  color: var(--bs-fg) !important;
+  box-shadow: none !important;
+  font-family: var(--bs-mono);
+  font-weight: 400;
+}
+
+.q-pagination .q-btn:hover,
+.q-pagination .q-btn:focus-visible {
+  opacity: 0.7;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.q-pagination .q-btn--unelevated,
+.q-pagination .q-btn.bg-primary,
+.body--dark .q-pagination .q-btn--unelevated.bg-primary,
+.body--light .q-pagination .q-btn--unelevated.bg-primary {
+  background: var(--bs-fg) !important;
+  color: var(--bs-bg) !important;
+  font-weight: 600;
+  opacity: 1;
+  text-decoration: none;
+}
+
+.q-pagination .q-btn[disabled],
+.q-pagination .q-btn.disabled {
+  color: var(--bs-muted) !important;
+  background: transparent !important;
+  opacity: 1 !important;
+  text-decoration: none;
 }
 
 .q-tabs {
@@ -1764,9 +1933,17 @@ a:hover {
     width: 100%;
   }
 
+  .field-grid {
+    grid-template-columns: 1fr;
+  }
+
   .q-table__bottom {
     flex-wrap: wrap;
     gap: var(--bs-space-sm);
+  }
+
+  .table-actions {
+    justify-content: flex-start;
   }
 
   .q-field__bottom {

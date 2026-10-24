@@ -28,14 +28,13 @@
         label="New API key"
       >
         <div class="composer-editor">
-          <div class="form-actions q-py-md">
+          <div class="form-actions">
             <q-btn flat no-caps @click="loadAdminKey">Admin example</q-btn>
             <q-btn flat no-caps @click="loadSearchKey">Search example</q-btn>
             <q-btn
               type="a"
               no-caps
               flat
-              dense
               :href="`https://typesense.org/docs/${store.data.debug.version || store.data.defaultDocVersion}/api/api-keys.html#create-an-api-key`"
               target="_blank"
               >Key documentation</q-btn
@@ -45,8 +44,8 @@
           <q-banner v-if="state.jsonError" inline-actions>
             This JSON is invalid: {{ state.jsonError }}
           </q-banner>
-          <div class="form-actions form-actions--end q-py-md">
-            <q-btn unelevated color="primary" :disable="!!state.jsonError" @click="createApiKey">
+          <div class="form-actions form-actions--end">
+            <q-btn unelevated color="primary" no-caps :disable="!!state.jsonError" @click="createApiKey">
               Create API key
             </q-btn>
           </div>
@@ -61,16 +60,19 @@
         :columns="state.columns"
         row-key="id"
         :visible-columns="visibleColumns"
+        :rows-per-page-options="[50, 125, 250]"
+        :pagination="{ rowsPerPage: 50 }"
       >
         <template #body-cell-actions_op="props">
-          <q-td class="text-right">
-            <q-btn
-              flat
-              color="negative"
-              icon="sym_s_delete_forever"
-              title="Delete API key"
-              @click="deleteApiKey(props.row.id)"
-            ></q-btn>
+          <q-td>
+            <div class="table-actions">
+              <q-btn
+                flat
+                no-caps
+                class="table-action-danger"
+                @click="deleteApiKey(props.row.id)"
+              >Delete</q-btn>
+            </div>
           </q-td>
         </template>
       </q-table>

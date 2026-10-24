@@ -27,50 +27,59 @@
         expanded-icon="sym_s_unfold_less"
         :label="isUpdate ? 'Update synonym' : 'New synonym'"
       >
-        <div class="field-stack q-py-md">
-          <q-input v-model="state.id" label="ID" borderless />
-          <q-option-group v-model="state.type" :options="typeOptions" color="primary" inline />
-          <q-input
-            v-if="state.type === types.ONE_WAY"
-            v-model="state.synonym.root"
-            borderless
-            stack-label
-            label="Root"
-          />
-          <q-select
-            v-model="state.synonym.synonyms"
-            borderless
-            multiple
-            use-chips
-            use-input
-            new-value-mode="add"
-            stack-label
-            hide-dropdown-icon
-            label="Synonyms"
-            hint="Type a term and press Enter"
-          />
-          <h3 class="page-section-title">Optional</h3>
-          <q-select
-            v-model="state.synonym.symbols_to_index"
-            borderless
-            multiple
-            use-chips
-            use-input
-            new-value-mode="add"
-            stack-label
-            hide-dropdown-icon
-            label="Symbols to index"
-            hint="Type a symbol such as + or − and press Enter"
-          />
-          <q-input
-            v-model="state.synonym.locale"
-            borderless
-            stack-label
-            label="Locale"
-            hint="Leave blank to auto-detect"
-          />
+        <div class="field-stack">
+          <label class="field">
+            <span class="field-label">ID</span>
+            <q-input v-model="state.id" borderless hide-bottom-space />
+          </label>
+          <div class="field">
+            <span class="field-label">Type</span>
+            <q-option-group v-model="state.type" :options="typeOptions" color="primary" inline />
+          </div>
+          <label v-if="state.type === types.ONE_WAY" class="field">
+            <span class="field-label">Root</span>
+            <q-input v-model="state.synonym.root" borderless hide-bottom-space />
+          </label>
+          <label class="field">
+            <span class="field-label">Synonyms</span>
+            <q-select
+              v-model="state.synonym.synonyms"
+              borderless
+              multiple
+              use-chips
+              use-input
+              new-value-mode="add"
+              hide-dropdown-icon
+              hide-bottom-space
+            />
+            <p class="field-hint">Type a term and press Enter.</p>
+          </label>
+          <h3 class="page-subhead">Optional</h3>
+          <label class="field">
+            <span class="field-label">Symbols to index</span>
+            <q-select
+              v-model="state.synonym.symbols_to_index"
+              borderless
+              multiple
+              use-chips
+              use-input
+              new-value-mode="add"
+              hide-dropdown-icon
+              hide-bottom-space
+            />
+            <p class="field-hint">Type a symbol such as + or − and press Enter.</p>
+          </label>
+          <label class="field">
+            <span class="field-label">Locale <span class="field-optional">(optional)</span></span>
+            <q-input
+              v-model="state.synonym.locale"
+              borderless
+              hide-bottom-space
+              placeholder="Leave blank to auto-detect"
+            />
+          </label>
           <div class="form-actions form-actions--end">
-            <q-btn unelevated color="primary" :disable="!isValid" @click="createSynonym()">{{
+            <q-btn unelevated color="primary" no-caps :disable="!isValid" @click="createSynonym()">{{
               isUpdate ? 'Update synonym' : 'Add synonym'
             }}</q-btn>
           </div>
@@ -85,23 +94,20 @@
         :columns="state.columns"
         row-key="id"
         :visible-columns="visibleColumns"
+        :rows-per-page-options="[50, 125, 250]"
         :pagination="{ rowsPerPage: 50, sortBy: 'name' }"
       >
         <template #body-cell-actions="props">
-          <q-td class="text-right">
-            <q-btn
-              flat
-              icon="sym_s_edit"
-              title="Edit synonym"
-              @click="editSynonym(props.row)"
-            ></q-btn>
-            <q-btn
-              flat
-              color="negative"
-              icon="sym_s_delete_forever"
-              title="Delete synonym"
-              @click="deleteSynonym(props.row.id)"
-            ></q-btn>
+          <q-td>
+            <div class="table-actions">
+              <q-btn flat no-caps @click="editSynonym(props.row)">Edit</q-btn>
+              <q-btn
+                flat
+                no-caps
+                class="table-action-danger"
+                @click="deleteSynonym(props.row.id)"
+              >Delete</q-btn>
+            </div>
           </q-td>
         </template>
       </q-table>

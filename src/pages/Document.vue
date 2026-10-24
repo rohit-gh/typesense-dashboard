@@ -8,32 +8,34 @@
         </p>
       </div>
       <q-btn
-        unelevated
+        flat
+        no-caps
         :disable="!$q.platform.is.electron"
-        icon="sym_s_attach_file"
         @click="importFile()"
       >
         {{ $q.platform.is.electron ? 'Import from file' : 'Import from file (desktop app)' }}
       </q-btn>
     </header>
 
-    <monaco-editor v-model="documentsJson" style="min-height: 200px"></monaco-editor>
+    <monaco-editor v-model="documentsJson" class="editor-pane"></monaco-editor>
     <q-banner v-if="state.jsonError" inline-actions>
       This JSON is invalid: {{ state.jsonError }}
     </q-banner>
 
     <div class="document-actions">
-      <q-btn unelevated color="primary" @click="addEmptyDocument()">Add empty document</q-btn>
+      <q-btn flat no-caps @click="addEmptyDocument()">Add empty document</q-btn>
       <div class="document-import">
-        <q-select
-          v-model="state.action"
-          borderless
-          class="document-mode"
-          label="Import mode"
-          :options="actionOptions"
-          :hint="actionDescriptions[state.action]"
-        />
-        <q-btn unelevated color="primary" :disable="!!state.jsonError" @click="importDocuments()"
+        <label class="field document-mode">
+          <span class="field-label">Import mode</span>
+          <q-select
+            v-model="state.action"
+            borderless
+            hide-bottom-space
+            :options="actionOptions"
+          />
+          <p class="field-hint">{{ actionDescriptions[state.action] }}</p>
+        </label>
+        <q-btn unelevated color="primary" no-caps :disable="!!state.jsonError" @click="importDocuments()"
           >Import documents</q-btn
         >
       </div>

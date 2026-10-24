@@ -7,7 +7,11 @@
           Fields for {{ store.currentCollection?.name || 'this collection' }}.
         </p>
       </div>
-      <q-btn unelevated color="negative" @click="drop(store.currentCollection?.name || '')"
+      <q-btn
+        flat
+        no-caps
+        class="table-action-danger"
+        @click="drop(store.currentCollection?.name || '')"
         >Delete collection</q-btn
       >
     </header>

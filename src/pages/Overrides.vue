@@ -28,13 +28,16 @@
         :label="isUpdate ? 'Update curation' : 'New curation'"
       >
         <div class="composer-editor">
-          <q-input v-model="state.id" borderless label="ID" class="q-py-md" />
+          <label class="field">
+            <span class="field-label">ID</span>
+            <q-input v-model="state.id" borderless hide-bottom-space />
+          </label>
           <monaco-editor v-model="overrideJson" class="editor-pane"></monaco-editor>
           <q-banner v-if="state.jsonError" inline-actions>
             This JSON is invalid: {{ state.jsonError }}
           </q-banner>
-          <div class="form-actions form-actions--end q-py-md">
-            <q-btn unelevated color="primary" :disable="!isValid" @click="createOverride()">{{
+          <div class="form-actions form-actions--end">
+            <q-btn unelevated color="primary" no-caps :disable="!isValid" @click="createOverride()">{{
               isUpdate ? 'Update curation' : 'Add curation'
             }}</q-btn>
           </div>
@@ -49,22 +52,20 @@
         :columns="state.columns"
         row-key="id"
         :visible-columns="visibleColumns"
+        :rows-per-page-options="[50, 125, 250]"
+        :pagination="{ rowsPerPage: 50, sortBy: 'id' }"
       >
         <template #body-cell-actions="props">
-          <q-td class="text-right">
-            <q-btn
-              flat
-              icon="sym_s_edit"
-              title="Edit curation"
-              @click="editOverride(props.row)"
-            ></q-btn>
-            <q-btn
-              flat
-              color="negative"
-              icon="sym_s_delete_forever"
-              title="Delete curation"
-              @click="deleteOverride(props.row.id)"
-            ></q-btn>
+          <q-td>
+            <div class="table-actions">
+              <q-btn flat no-caps @click="editOverride(props.row)">Edit</q-btn>
+              <q-btn
+                flat
+                no-caps
+                class="table-action-danger"
+                @click="deleteOverride(props.row.id)"
+              >Delete</q-btn>
+            </div>
           </q-td>
         </template>
       </q-table>
